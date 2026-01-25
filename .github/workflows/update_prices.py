@@ -1,19 +1,27 @@
-      - name: Commit & Push se houver mudança ou arquivo novo
-        run: |
-          git config --global user.name "GitHub Action"
-          git config --global user.email "github-action@users.noreply.github.com"
-          
-          # Tenta adicionar o arquivo (não falha se já existe ou não mudou)
-          git add crypto_prices.txt || true
-          
-          # Verifica se há algo para commitar
-          git diff --staged --quiet
-          if [ $? -eq 0 ]; then
-            echo "Nenhuma mudança detectada → pulando commit"
-            exit 0
-          fi
-          
-          git commit -m "Atualização automática: preços BTC e ETH (GitHub Actions)" || echo "Commit ignorado (provavelmente sem mudança)"
-          git push || echo "Push ignorado (já atualizado ou sem permissão)"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+import requests
+import os
+
+FILE = "crypto_prices.txt"
+
+try:
+    # Usando Binance API (mais confiável para pares USDT)
+    # BTC/USDT
+    btc_resp = requests.get("https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT", timeout=10)
+    btc_resp.raise_for_status()
+    btc = float(btc_resp.json()["price"])
+
+    # ETH/USDT
+    eth_resp = requests.get("https://api.binance.com/api/v3/ticker/price?symbol=ETHUSDT", timeout=10)
+    eth_resp.raise_for_status()
+    eth = float(eth_resp.json()["price"])
+
+    # Escreve no arquivo com 2 casas decimais
+    with open(FILE, "w", encoding="utf-8") as f:
+        f.write(f"{btc:.2f}\n")
+        f.write(f"{eth:.2f}\n")
+
+    print(f"Atualizado com sucesso (Binance) → BTC: {btc:.2f} USDT | ETH: {eth:.2f} USDT")
+
+except Exception as e:
+    print(f"Erro ao obter preços: {e}")
+    # Se der erro, não cria arquivo vazio – mantém o anterior
