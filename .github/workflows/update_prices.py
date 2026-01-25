@@ -1,27 +1,55 @@
-import requests
-import os
+name: Atualiza preços BTC e ETH a cada 5 min
 
-FILE = "crypto_prices.txt"
+on:
+  schedule:
+    - cron: '*/5 * * * *'          # a cada 5 minutos
+  workflow_dispatch:               # permite rodar manualmente
 
-try:
-    # Usando Binance API (mais confiável para pares USDT)
-    # BTC/USDT
-    btc_resp = requests.get("https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT", timeout=10)
-    btc_resp.raise_for_status()
-    btc = float(btc_resp.json()["price"])
+jobs:
+  update:
+    runs-on: ubuntu-latest
 
-    # ETH/USDT
-    eth_resp = requests.get("https://api.binance.com/api/v3/ticker/price?symbol=ETHUSDT", timeout=10)
-    eth_resp.raise_for_status()
-    eth = float(eth_resp.json()["price"])
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-    # Escreve no arquivo com 2 casas decimais
-    with open(FILE, "w", encoding="utf-8") as f:
-        f.write(f"{btc:.2f}\n")
-        f.write(f"{eth:.2f}\n")
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
-    print(f"Atualizado com sucesso (Binance) → BTC: {btc:.2f} USDT | ETH: {eth:.2f} USDT")
+      - name: Instalar dependências
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
 
-except Exception as e:
-    print(f"Erro ao obter preços: {e}")
-    # Se der erro, não cria arquivo vazio – mantém o anterior
+      - name: Atualizar preços
+        run: python update_prices.py
+
+      - name: Debug - mostra status (opcional, pode remover depois)
+        run: |
+          ls -la || true
+          git status || true
+          cat crypto_prices.txt || echo "Arquivo ainda não existe"
+
+      - name: Commit & Push se houver mudança ou arquivo novo
+        run: |
+          git config --global user.name "GitHub Action"
+          git config --global user.email "github-action@users.noreply.github.com"
+          
+          # Adiciona o arquivo (não falha se não existir ainda)
+          git add crypto_prices.txt || true
+          
+          # Verifica se há algo staged para commitar
+          git diff --staged --quiet
+          if [ $? -eq 0 ]; then
+            echo "Nenhuma mudança detectada → pulando commit"
+            exit 0
+          fi
+          
+          git commit -m "Atualização automática: preços BTC e ETH (GitHub Actions)" || echo "Commit ignorado (provavelmente sem mudança)"
+          git push || echo "Push ignorado (já atualizado ou sem permissão)"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
