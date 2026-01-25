@@ -1,55 +1,67 @@
-name: Atualiza preços BTC e ETH a cada 5 min
+name: Atualiza preços BTC e ETH a cada 5 minutos
 
 on:
   schedule:
-    - cron: '*/5 * * * *'          # a cada 5 minutos
-  workflow_dispatch:               # permite rodar manualmente
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
 
 jobs:
-  update:
+  update-prices:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write          # ← muito importante para permitir commit/push
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repositório
         uses: actions/checkout@v4
         with:
+          ref: main              # ← force a branch correta (mude se sua branch padrão for outra)
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup Python
+      - name: Configura Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Instalar dependências
+      - name: Instala dependências
         run: |
           python -m pip install --upgrade pip
-          pip install requests
+          pip install --no-cache-dir requests
 
-      - name: Atualizar preços
+      - name: Executa script de atualização
         run: python update_prices.py
 
-      - name: Debug - mostra status (opcional, pode remover depois)
+      - name: Debug (estado do repositório)
         run: |
-          ls -la || true
-          git status || true
-          cat crypto_prices.txt || echo "Arquivo ainda não existe"
+          ls -la
+          git status
+          echo "Conteúdo do crypto_prices.txt:"
+          cat crypto_prices.txt || echo "(arquivo não encontrado)"
 
-      - name: Commit & Push se houver mudança ou arquivo novo
+      - name: Commit e Push das alterações (se houver)
         run: |
-          git config --global user.name "GitHub Action"
-          git config --global user.email "github-action@users.noreply.github.com"
-          
-          # Adiciona o arquivo (não falha se não existir ainda)
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+
           git add crypto_prices.txt || true
-          
-          # Verifica se há algo staged para commitar
+
+          # Só commit se houver alteração real
           git diff --staged --quiet
           if [ $? -eq 0 ]; then
-            echo "Nenhuma mudança detectada → pulando commit"
+            echo "→ Nenhuma alteração. Pulando commit."
             exit 0
           fi
-          
-          git commit -m "Atualização automática: preços BTC e ETH (GitHub Actions)" || echo "Commit ignorado (provavelmente sem mudança)"
-          git push || echo "Push ignorado (já atualizado ou sem permissão)"
+
+          git commit -m "chore: atualiza preços BTC/ETH automaticamente ($(date -u +'%Y-%m-%d %H:%M UTC'))" || {
+            echo "→ Commit falhou (provavelmente sem mudanças)"
+            exit 0
+          }
+
+          git push origin HEAD || {
+            echo "→ Push falhou"
+            exit 0
+          }
+
+          echo "→ Commit & push realizados com sucesso"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
