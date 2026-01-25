@@ -4,24 +4,21 @@ import os
 FILE = "crypto_prices.txt"
 
 try:
-    # Usando Binance API (mais confiável para pares USDT)
-    # BTC/USDT
-    btc_resp = requests.get("https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT", timeout=10)
-    btc_resp.raise_for_status()
-    btc = float(btc_resp.json()["price"])
+    response = requests.get(
+        "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd",
+        timeout=10
+    )
+    response.raise_for_status()
+    data = response.json()
 
-    # ETH/USDT
-    eth_resp = requests.get("https://api.binance.com/api/v3/ticker/price?symbol=ETHUSDT", timeout=10)
-    eth_resp.raise_for_status()
-    eth = float(eth_resp.json()["price"])
+    btc = data["bitcoin"]["usd"]
+    eth = data["ethereum"]["usd"]
 
-    # Escreve no arquivo com 2 casas decimais
     with open(FILE, "w", encoding="utf-8") as f:
-        f.write(f"{btc:.2f}\n")
-        f.write(f"{eth:.2f}\n")
+        f.write(f"{btc:.2f}\n")  # BTC em USD
+        f.write(f"{eth:.2f}\n")  # ETH em USD
 
-    print(f"Atualizado com sucesso (Binance) → BTC: {btc:.2f} USDT | ETH: {eth:.2f} USDT")
+    print(f"Atualizado (CoinGecko USD) → BTC: {btc:.2f} | ETH: {eth:.2f}")
 
 except Exception as e:
     print(f"Erro ao obter preços: {e}")
-    # Se der erro, não cria arquivo vazio – mantém o anterior
