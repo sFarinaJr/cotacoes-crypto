@@ -2,8 +2,8 @@
 
 Arquivo gerado automaticamente pelo GitHub Actions:
 
-- Linha 1 → Preço do Bitcoin (BTC/USDT)  
-- Linha 2 → Preço do Ethereum (ETH/USDT)  
+- Linha 2 → Preço do Bitcoin (BTC/USDT)  
+- Linha 3 → Preço do Ethereum (ETH/USDT)  
 
 Última atualização: veja o histórico de commits.
 
