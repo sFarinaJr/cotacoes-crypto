@@ -4,14 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
   <title>Cotação BTC & ETH</title>
-  
+ 
   <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
-
     body {
       height: 100vh;
       background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
@@ -24,13 +23,11 @@
       overflow: hidden;
       touch-action: manipulation;
     }
-
     .container {
       width: 92%;
       max-width: 900px;
       text-align: center;
     }
-
     .crypto-item {
       display: flex;
       align-items: center;
@@ -38,7 +35,6 @@
       margin: 1.2em 0;
       gap: 0.6em;
     }
-
     .crypto-icon {
       width: 22vw;
       max-width: 220px;
@@ -46,23 +42,19 @@
       object-fit: contain;
       filter: drop-shadow(0 4px 12px rgba(0,0,0,0.6));
     }
-
     .crypto-info {
       display: flex;
       flex-direction: column;
       align-items: flex-start;
     }
-
     .symbol {
       font-size: 11vw;
       font-weight: 800;
       letter-spacing: -0.03em;
       line-height: 0.95;
     }
-
     .btc .symbol { color: #f7931a; }
     .eth .symbol { color: #627eea; }
-
     .price {
       font-size: 10vw;
       font-weight: 600;
@@ -70,7 +62,6 @@
       letter-spacing: -0.02em;
       line-height: 1;
     }
-
     #status {
       margin-top: 3em;
       font-size: 4.5vw;
@@ -78,29 +69,26 @@
       opacity: 0.85;
       font-weight: 400;
     }
-
     @media (orientation: landscape) {
       .crypto-icon { width: 16vw; max-width: 180px; }
       .symbol { font-size: 8.5vw; }
-      .price  { font-size: 7.8vw; }
+      .price { font-size: 7.8vw; }
       #status { font-size: 3.2vw; margin-top: 2em; }
     }
-
     @media (min-width: 1024px) {
       .crypto-icon { width: 180px; }
       .symbol { font-size: 90px; }
-      .price  { font-size: 80px; }
+      .price { font-size: 80px; }
       #status { font-size: 28px; margin-top: 60px; }
     }
   </style>
 </head>
 <body>
-
   <div class="container">
     <div class="crypto-item btc">
-      <img 
-        src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Bitcoin.svg/800px-Bitcoin.svg.png" 
-        alt="Bitcoin" 
+      <img
+        src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Bitcoin.svg/800px-Bitcoin.svg.png"
+        alt="Bitcoin"
         class="crypto-icon"
       />
       <div class="crypto-info">
@@ -108,11 +96,10 @@
         <div class="price" id="btc-price">—</div>
       </div>
     </div>
-
     <div class="crypto-item eth">
-      <img 
-        src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Ethereum-icon-purple.svg/800px-Ethereum-icon-purple.svg.png" 
-        alt="Ethereum" 
+      <img
+        src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Ethereum-icon-purple.svg/800px-Ethereum-icon-purple.svg.png"
+        alt="Ethereum"
         class="crypto-icon"
       />
       <div class="crypto-info">
@@ -120,14 +107,12 @@
         <div class="price" id="eth-price">—</div>
       </div>
     </div>
-
     <div id="status">Carregando preços...</div>
   </div>
-
   <script>
     const btcPriceEl = document.getElementById('btc-price');
     const ethPriceEl = document.getElementById('eth-price');
-    const statusEl   = document.getElementById('status');
+    const statusEl = document.getElementById('status');
 
     // Formata número no padrão brasileiro: 105.432,50
     function formatBR(value) {
@@ -139,20 +124,33 @@
 
     function loadPrices() {
       statusEl.textContent = "Buscando preços...";
-
       fetch('crypto_prices.txt?_=' + Date.now())
         .then(res => {
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
           return res.text();
         })
         .then(text => {
-          const lines = text.trim().split('\n').filter(line => line.trim());
+          const lines = text.trim().split('\n')
+            .map(line => line.trim())
+            .filter(line => line && !line.startsWith('#'));  // ignora linhas vazias e comentários
+
           if (lines.length >= 2) {
-            btcPriceEl.textContent = formatBR(lines[0]) + ' USDT';
-            ethPriceEl.textContent = formatBR(lines[1]) + ' USDT';
-            statusEl.textContent = 'Atualizado às ' + new Date().toLocaleTimeString('pt-BR');
+            // Extrai apenas o número depois de "BTC: " ou "ETH: "
+            const btcLine = lines[0].split(':')[1]?.trim() || lines[0];
+            const ethLine = lines[1].split(':')[1]?.trim() || lines[1];
+
+            const btcValue = parseFloat(btcLine);
+            const ethValue = parseFloat(ethLine);
+
+            if (!isNaN(btcValue) && !isNaN(ethValue)) {
+              btcPriceEl.textContent = formatBR(btcValue) + ' USDT';
+              ethPriceEl.textContent = formatBR(ethValue) + ' USDT';
+              statusEl.textContent = 'Atualizado às ' + new Date().toLocaleTimeString('pt-BR');
+            } else {
+              statusEl.textContent = 'Valores inválidos no arquivo';
+            }
           } else {
-            statusEl.textContent = 'Arquivo incompleto';
+            statusEl.textContent = 'Arquivo incompleto ou sem preços';
           }
         })
         .catch(err => {
@@ -161,12 +159,10 @@
         });
     }
 
-    // Carrega imediatamente ao abrir a página
+    // Carrega imediatamente
     loadPrices();
-
-    // Atualiza a cada 5 minutos (300 segundos)
+    // Atualiza a cada 5 minutos
     setInterval(loadPrices, 300000);
   </script>
-
 </body>
 </html>
