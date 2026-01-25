@@ -2,39 +2,79 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Cotação BTC e ETH</title>
   <style type="text/css">
-    body {
-      background-color: black;
+    * {
+      margin: 0;
+      padding: 0;
+    }
+    html, body {
+      height: 100%;
+      background-color: #0a1f3a; /* Fundo levemente azul escuro */
       color: white;
       font-family: Arial, Helvetica, sans-serif;
+      overflow: hidden;
       text-align: center;
-      margin: 0;
-      padding: 10px;
     }
-    h1 { font-size: 40px; margin: 20px 0; }
-    .item { margin: 30px 0; font-size: 30px; }
-    .btc { color: #f7931a; }
-    .eth { color: #627eea; }
-    img { width: 80px; height: auto; vertical-align: middle; margin-right: 10px; }
-    #status { font-size: 20px; color: #aaa; margin-top: 40px; }
+    .container {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    h1 {
+      font-size: 60px;
+      margin-bottom: 40px;
+      color: #ffffff;
+    }
+    .item {
+      margin: 40px 0;
+      font-size: 120px; /* Símbolo grande */
+      font-weight: bold;
+    }
+    .btc {
+      color: #f7931a; /* Laranja Bitcoin */
+    }
+    .eth {
+      color: #627eea; /* Roxo Ethereum */
+    }
+    .price {
+      font-size: 108px; /* Preço ainda maior (3x o anterior) */
+      font-weight: bold;
+    }
+    img {
+      width: 120px;
+      height: auto;
+      vertical-align: middle;
+      margin-right: 20px;
+    }
+    #status {
+      font-size: 28px;
+      color: #aaccff; /* Azul claro para contraste */
+      margin-top: 60px;
+    }
   </style>
 </head>
 <body>
-  <h1>Cotações Crypto</h1>
+  <div class="container">
+    <h1>Cotações Crypto</h1>
 
-  <div class="item btc">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Bitcoin.svg/800px-Bitcoin.svg.png" alt="BTC">
-    BTC: <span id="btc">—</span> USDT
+    <div class="item btc">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Bitcoin.svg/800px-Bitcoin.svg.png" alt="BTC">
+      BTC <span class="price" id="btc">—</span> USDT
+    </div>
+
+    <div class="item eth">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Ethereum-icon-purple.svg/800px-Ethereum-icon-purple.svg.png" alt="ETH">
+      ETH <span class="price" id="eth">—</span> USDT
+    </div>
+
+    <div id="status">Carregando...</div>
   </div>
-
-  <div class="item eth">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Ethereum-icon-purple.svg/800px-Ethereum-icon-purple.svg.png" alt="ETH">
-    ETH: <span id="eth">—</span> USDT
-  </div>
-
-  <div id="status">Carregando...</div>
 
   <script type="text/javascript">
     var btcEl = document.getElementById('btc');
@@ -87,10 +127,10 @@
               var m = d.getMinutes();
               statusEl.innerHTML = 'Atualizado às ' + h + ':' + (m < 10 ? '0' : '') + m;
             } else {
-              statusEl.innerHTML = 'Erro: preços não encontrados no arquivo';
+              statusEl.innerHTML = 'Erro: preços não encontrados';
             }
           } else {
-            statusEl.innerHTML = 'Erro ao carregar arquivo (status ' + xhr.status + ')';
+            statusEl.innerHTML = 'Erro ao carregar (status ' + xhr.status + ')';
           }
         }
       };
@@ -98,11 +138,8 @@
       xhr.send(null);
     }
 
-    // Carrega logo ao abrir
     loadPrices();
-
-    // Atualiza sozinho a cada 5 minutos (300000 ms = 5 min)
-    setInterval(loadPrices, 300000);
+    setInterval(loadPrices, 300000); // 5 minutos
   </script>
 </body>
 </html>
