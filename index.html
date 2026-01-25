@@ -125,51 +125,51 @@
   </div>
 
   <script>
-  const btcPriceEl = document.getElementById('btc-price');
-  const ethPriceEl = document.getElementById('eth-price');
-  const statusEl   = document.getElementById('status');
+    const btcPriceEl = document.getElementById('btc-price');
+    const ethPriceEl = document.getElementById('eth-price');
+    const statusEl   = document.getElementById('status');
 
-  // Função para formatar no padrão BR: 105.432,50
-  function formatBR(value) {
-    return Number(value).toLocaleString('pt-BR', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    });
-  }
-
-  function loadPrices() {
-    statusEl.textContent = "Buscando preços...";
-
-    // URL ABSOLUTA raw do GitHub - evita problemas de relativo no iPad/Safari
-    const txtUrl = 'https://raw.githubusercontent.com/sfarinajr/cotacao-crypto/main/crypto_prices.txt?_=' + Date.now();
-
-    fetch(txtUrl)
-      .then(res => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.text();
-      })
-      .then(text => {
-        const lines = text.trim().split('\n').filter(line => line.trim());
-        if (lines.length >= 2) {
-          btcPriceEl.textContent = formatBR(lines[0]) + ' USDT';
-          ethPriceEl.textContent = formatBR(lines[1]) + ' USDT';
-          statusEl.textContent = 'Atualizado às ' + new Date().toLocaleTimeString('pt-BR');
-        } else {
-          statusEl.textContent = 'Arquivo incompleto ou vazio';
-        }
-      })
-      .catch(err => {
-        console.error('Erro ao carregar preços:', err);
-        statusEl.textContent = 'Erro ao carregar • verifique conexão ou tente recarregar';
+    // Função para formatar no padrão BR: 105.432,50
+    function formatBR(value) {
+      return Number(value).toLocaleString('pt-BR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
       });
-  }
+    }
 
-  // Carrega imediatamente
-  loadPrices();
+    function loadPrices() {
+      statusEl.textContent = "Buscando preços...";
 
-  // Atualiza a cada 5 minutos (300 segundos)
-  setInterval(loadPrices, 300000);
-</script>
+      // URL ABSOLUTA corrigida para o username correto 'farinajr' (sem 's')
+      const txtUrl = 'https://raw.githubusercontent.com/farinajr/cotacao-crypto/main/crypto_prices.txt?_=' + Date.now();
+
+      fetch(txtUrl)
+        .then(res => {
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          return res.text();
+        })
+        .then(text => {
+          const lines = text.trim().split('\n').filter(line => line.trim());
+          if (lines.length >= 2) {
+            btcPriceEl.textContent = formatBR(lines[0]) + ' USDT';
+            ethPriceEl.textContent = formatBR(lines[1]) + ' USDT';
+            statusEl.textContent = 'Atualizado às ' + new Date().toLocaleTimeString('pt-BR');
+          } else {
+            statusEl.textContent = 'Arquivo incompleto ou vazio';
+          }
+        })
+        .catch(err => {
+          console.error('Erro ao carregar preços:', err);
+          statusEl.textContent = 'Erro ao carregar • verifique conexão ou tente recarregar';
+        });
+    }
+
+    // Carrega imediatamente
+    loadPrices();
+
+    // Atualiza a cada 5 minutos (300 segundos)
+    setInterval(loadPrices, 300000);
+  </script>
 
 </body>
 </html>
