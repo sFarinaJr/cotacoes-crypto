@@ -148,8 +148,8 @@
         .then(text => {
           const lines = text.trim().split('\n').filter(line => line.trim());
           if (lines.length >= 2) {
-            btcPriceEl.textContent = formatBR(lines[0]) + ' USDT';
-            ethPriceEl.textContent = formatBR(lines[1]) + ' USDT';
+            btcPriceEl.textContent = formatBR(lines[0]) ;
+            ethPriceEl.textContent = formatBR(lines[1]) ;
             statusEl.textContent = 'Atualizado às ' + new Date().toLocaleTimeString('pt-BR');
           } else {
             statusEl.textContent = 'Arquivo incompleto';
