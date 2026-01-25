@@ -1,38 +1,37 @@
 name: Atualiza preços BTC e ETH a cada 5 min
 
-# Quando rodar
 on:
   schedule:
-    - cron: '*/5 * * * *'     # exatamente a cada 5 minutos
-  workflow_dispatch:          # permite rodar manualmente também
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
 
-# Permissões obrigatórias para o GitHub Actions poder dar push
 permissions:
   contents: write
 
 jobs:
-  atualizar-precos:
+  update:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
 
     steps:
-      - name: Checkout do repositório
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Configurar Python
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Instalar requests
-        run: pip install requests
+      - name: Install dependencies
+        run: pip install requests --upgrade
 
-      - name: Executar script de atualização
+      - name: Atualizar preços
         run: python update_prices.py
+        continue-on-error: false  # para falhar se der erro
 
-      - name: Commit e push se houver mudanças
+      - name: Commit mudanças (se houver)
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add crypto_prices.txt
-          git commit -m "Atualização automática: preços BTC e ETH (a cada 5 min)" || echo "Nada para commitar"
-          git push || echo "Nada para pushar"
+          git diff --staged --quiet || (git commit -m "Atualização automática: preços BTC e ETH (a cada 5 min)" && git push)
+        continue-on-error: true
