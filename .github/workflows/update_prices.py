@@ -5,63 +5,80 @@ on:
     - cron: '*/5 * * * *'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
-  update-prices:
+  update:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write          # ← muito importante para permitir commit/push
 
     steps:
-      - name: Checkout repositório
+      - name: Checkout repositório (branch padrão)
         uses: actions/checkout@v4
         with:
-          ref: main              # ← force a branch correta (mude se sua branch padrão for outra)
+          fetch-depth: 0          # traz todo o histórico (ajuda em alguns casos)
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Configura Python 3.11
+      - name: Configura Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Instala dependências
+      - name: Instala requests
         run: |
           python -m pip install --upgrade pip
-          pip install --no-cache-dir requests
+          pip install requests
 
-      - name: Executa script de atualização
+      - name: Roda o script de preços
         run: python update_prices.py
 
-      - name: Debug (estado do repositório)
+      - name: Mostra debug (importante para ver o que está acontecendo)
         run: |
-          ls -la
-          git status
-          echo "Conteúdo do crypto_prices.txt:"
-          cat crypto_prices.txt || echo "(arquivo não encontrado)"
+          echo "Branch atual:"
+          git branch --show-current
+          echo "Remote branches:"
+          git branch -r
+          echo "Status completo:"
+          git status --short --branch
+          echo ""
+          echo "Conteúdo atual do crypto_prices.txt:"
+          cat crypto_prices.txt || echo "Arquivo NÃO existe ainda!"
+          echo ""
+          echo "Diff staged:"
+          git diff --staged || true
 
-      - name: Commit e Push das alterações (se houver)
+      - name: Commit e Push (forçando branch correta)
         run: |
-          git config user.name "GitHub Actions"
+          # Config git
+          git config user.name "GitHub Actions Bot"
           git config user.email "actions@github.com"
 
+          # Mostra branch atual para debug
+          CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+          echo "Branch atual detectada: $CURRENT_BRANCH"
+
+          # Sempre add o arquivo
           git add crypto_prices.txt || true
 
-          # Só commit se houver alteração real
-          git diff --staged --quiet
-          if [ $? -eq 0 ]; then
-            echo "→ Nenhuma alteração. Pulando commit."
+          # Verifica se há mesmo diferença
+          if git diff --staged --quiet; then
+            echo "→ Sem alterações reais no arquivo. Pulando commit."
             exit 0
           fi
 
-          git commit -m "chore: atualiza preços BTC/ETH automaticamente ($(date -u +'%Y-%m-%d %H:%M UTC'))" || {
-            echo "→ Commit falhou (provavelmente sem mudanças)"
+          # Commit
+          git commit -m "Atualização automática: preços BTC/ETH ($(date -u +'%Y-%m-%d %H:%M UTC'))" || {
+            echo "→ Commit ignorado (nenhuma mudança ou erro)"
             exit 0
           }
 
-          git push origin HEAD || {
-            echo "→ Push falhou"
-            exit 0
+          # Push explícito para a branch atual
+          git push origin "$CURRENT_BRANCH" || {
+            echo "→ Push falhou! Verifique permissões ou se a branch existe no remote."
+            echo "Tente rodar manualmente e veja o log completo."
+            exit 1   # falha o job para você notar
           }
 
-          echo "→ Commit & push realizados com sucesso"
+          echo "→ Commit e push OK na branch $CURRENT_BRANCH"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
