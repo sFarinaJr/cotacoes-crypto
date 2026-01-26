@@ -1,11 +1,10 @@
-# Preços BTC e ETH em USDT (atualizado a cada ~5 minutos)
+This repository aims to create simple HTML websites to work on iPad 2 A1395.
 
-Arquivo gerado automaticamente pelo GitHub Actions:
+For now, we only have Bitcoin and Ethereum exchange rates.
 
-- Linha 2 → Preço do Bitcoin (BTC/USDT)  
-- Linha 3 → Preço do Ethereum (ETH/USDT)  
+I would appreciate everyone's contribution to create websites that can keep older iPads running with pages that can stay on the screen all the time with useful information.
+  
+We have a .TXT file that stores the latest BTC and ETH quotes, updated every 5 minutes.
 
-Última atualização: veja o histórico de commits.
+In addition, we have an index.html file that displays the quotes on the screens of older iPads.
 
-**Link direto para o arquivo mais atual:**  
-https://raw.githubusercontent.com/SEU_USUARIO/SEU_REPOSITORIO/main/crypto_prices.txt
