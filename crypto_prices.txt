@@ -1,3 +1,3 @@
-# Última atualização: 2026-02-02 06:15:11 UTC
-BTC: 75444.00
-ETH: 2190.05
+# Última atualização: 2026-02-02 06:20:10 UTC
+BTC: 75830.00
+ETH: 2205.29
