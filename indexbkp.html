@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Cotação BTC e ETH</title>
+  <style type="text/css">
+    * {
+      margin: 0;
+      padding: 0;
+    }
+    html, body {
+      height: 100%;
+      background-color: #0a1f3a; /* Fundo levemente azul escuro */
+      color: white;
+      font-family: Arial, Helvetica, sans-serif;
+      overflow: hidden;
+      text-align: center;
+    }
+    .container {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    h1 {
+      font-size: 60px;
+      margin-bottom: 40px;
+      color: #ffffff;
+    }
+    .item {
+      margin: 40px 0;
+      font-size: 120px; /* Símbolo grande */
+      font-weight: bold;
+    }
+    .btc {
+      color: #f7931a; /* Laranja Bitcoin */
+    }
+    .eth {
+      color: #627eea; /* Roxo Ethereum */
+    }
+    .price {
+      font-size: 108px; /* Preço ainda maior (3x o anterior) */
+      font-weight: bold;
+    }
+    img {
+      width: 120px;
+      height: auto;
+      vertical-align: middle;
+      margin-right: 20px;
+    }
+    #status {
+      font-size: 28px;
+      color: #aaccff; /* Azul claro para contraste */
+      margin-top: 60px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Cotações Crypto</h1>
+
+    <div class="item btc">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Bitcoin.svg/800px-Bitcoin.svg.png" alt="BTC">
+      BTC <span class="price" id="btc">—</span> USDT
+      BTC <span class="price" id="btc">—</span>
+    </div>
+
+    <div class="item eth">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Ethereum-icon-purple.svg/800px-Ethereum-icon-purple.svg.png" alt="ETH">
+      ETH <span class="price" id="eth">—</span> USDT
+      ETH <span class="price" id="eth">—</span>
+    </div>
+
+    <div id="status">Carregando...</div>
+  </div>
+
+  <script type="text/javascript">
+    var btcEl = document.getElementById('btc');
+    var ethEl = document.getElementById('eth');
+    var statusEl = document.getElementById('status');
+
+    function formatNumber(num) {
+      num = parseFloat(num);
+      if (isNaN(num)) return '—';
+      var str = num.toFixed(2);
+      var parts = str.split('.');
+      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+      return parts.join(',');
+    }
+
+    function loadPrices() {
+      statusEl.innerHTML = 'Buscando preços...';
+
+      var xhr = new XMLHttpRequest();
+      var ts = new Date().getTime();
+      xhr.open('GET', 'crypto_prices.txt?_=' + ts, true);
+
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4) {
+          if (xhr.status === 200) {
+            var text = xhr.responseText;
+            var lines = text.split('\n');
+            var btcVal = null;
+            var ethVal = null;
+
+            for (var i = 0; i < lines.length; i++) {
+              var line = lines[i].trim();
+              if (line === '' || line.charAt(0) === '#') continue;
+
+              if (line.indexOf('BTC') !== -1) {
+                var parts = line.split(':');
+                if (parts.length > 1) btcVal = parts[1].trim().split(' ')[0];
+              }
+              if (line.indexOf('ETH') !== -1) {
+                var parts = line.split(':');
+                if (parts.length > 1) ethVal = parts[1].trim().split(' ')[0];
+              }
+            }
+
+            if (btcVal !== null && ethVal !== null) {
+              btcEl.innerHTML = formatNumber(btcVal);
+              ethEl.innerHTML = formatNumber(ethVal);
+              var d = new Date();
+              var h = d.getHours();
+              var m = d.getMinutes();
+              statusEl.innerHTML = 'Atualizado às ' + h + ':' + (m < 10 ? '0' : '') + m;
+            } else {
+              statusEl.innerHTML = 'Erro: preços não encontrados';
+            }
+          } else {
+            statusEl.innerHTML = 'Erro ao carregar (status ' + xhr.status + ')';
+          }
+        }
+      };
+
+      xhr.send(null);
+    }
+
+    loadPrices();
+    setInterval(loadPrices, 300000); // 5 minutos
+  </script>
+</body>
+</html>
