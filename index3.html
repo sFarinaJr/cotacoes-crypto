@@ -49,30 +49,39 @@
     .inner {
       display:table-cell;
       vertical-align:middle;
-      padding:40px 60px;
+      padding:20px 60px 60px 60px;  /* menos espaço em cima, mais embaixo */
       box-sizing:border-box;
     }
     h1 {
-      font-size:52px;
-      margin-bottom:35px;
+      font-size:72px;          /* maior e mais destacado */
+      margin-bottom:50px;      /* mais espaço abaixo */
+      font-weight:bold;
+      letter-spacing: -1px;
     }
     .item {
-      margin:35px 0;
-      font-size:100px;
+      margin:45px 0;           /* mais espaçamento vertical entre as moedas */
+      font-size:130px;         /* bem maior, mas ainda cabe em 1 linha */
       font-weight:bold;
+      white-space: nowrap;     /* força ficar em uma linha só */
+      overflow: hidden;
     }
     .btc { color:#f7931a; }
     .eth { color:#627eea; }
-    .price { font-size:90px; }
+    .price {
+      font-size:130px;         /* mesmo tamanho da moeda para harmonia */
+    }
     img {
-      width:110px;
+      width:140px;             /* logo maior para acompanhar o texto maior */
+      height:auto;
       vertical-align:middle;
-      margin-right:18px;
+      margin-right:25px;
     }
     #status {
       font-size:28px;
       color:#aaccff;
-      margin-top:50px;
+      margin-top:80px;         /* mais abaixo */
+      font-weight:bold;        /* negrito */
+      letter-spacing: 0.5px;
     }
   </style>
 </head>
@@ -94,14 +103,14 @@
 
       <div class="item btc">
         <img src="https://cryptologos.cc/logos/bitcoin-btc-logo.svg?v=040" 
-             onerror="this.outerHTML='<span style=\'color:#f7931a; font-size:100px; vertical-align:middle; margin-right:18px;\'>₿</span>'" 
+             onerror="this.outerHTML='<span style=\'color:#f7931a; font-size:130px; vertical-align:middle; margin-right:25px;\'>₿</span>'" 
              alt="BTC">
         BTC <span class="price" id="btc">—</span>
       </div>
 
       <div class="item eth">
         <img src="https://cryptologos.cc/logos/ethereum-eth-logo.svg?v=040" 
-             onerror="this.outerHTML='<span style=\'color:#627eea; font-size:100px; vertical-align:middle; margin-right:18px;\'>Ξ</span>'" 
+             onerror="this.outerHTML='<span style=\'color:#627eea; font-size:130px; vertical-align:middle; margin-right:25px;\'>Ξ</span>'" 
              alt="ETH">
         ETH <span class="price" id="eth">—</span>
       </div>
@@ -112,25 +121,22 @@
   </div>
 
   <script type="text/javascript">
-    // Tentativa de iniciar o vídeo automaticamente + após interação
+    // Tentativa de play do vídeo (mantido igual)
     var video = document.getElementById('bgvideo');
 
     function tryPlay() {
-      video.play().catch(function(err) {
-        // ignora erro silenciosamente (comum no iOS antigo)
-      });
+      video.play().catch(function(){});
     }
 
     video.addEventListener('loadedmetadata', tryPlay);
     setTimeout(tryPlay, 600);
-    setTimeout(tryPlay, 1500); // segunda tentativa
+    setTimeout(tryPlay, 1500);
 
-    // Toque na tela → tenta reproduzir (muito importante no iOS 9)
     document.addEventListener('touchstart', function() {
       tryPlay();
     }, { once: true });
 
-    // Lógica de preços e contador (inalterada)
+    // Lógica de preços e contador (sem alterações)
     var btcEl = document.getElementById('btc');
     var ethEl = document.getElementById('eth');
     var statusEl = document.getElementById('status');
