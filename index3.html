@@ -2,7 +2,9 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=1024, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=1024, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Cotação BTC e ETH</title>
   <style type="text/css">
     * { margin:0; padding:0; box-sizing:border-box; }
@@ -14,6 +16,7 @@
       color:white;
       font-family:Arial, Helvetica, sans-serif;
       overflow:hidden;
+      -webkit-text-size-adjust: none;
     }
     #video-bg {
       position:fixed;
@@ -47,12 +50,12 @@
       flex-direction:column;
       justify-content:center;
       align-items:center;
-      padding: 0 50px;
+      padding: 0 60px;
     }
     h1 {
-      font-size:70px;           /* reduzido ~10% */
+      font-size:60px;
       font-weight:bold;
-      margin-bottom:70px;       /* mais espaço abaixo do título */
+      margin-bottom:80px;
       letter-spacing:-1px;
       text-align:center;
     }
@@ -60,32 +63,32 @@
       display:flex;
       align-items:center;
       justify-content:center;
-      margin:50px 0;            /* mais espaço vertical entre as moedas */
-      font-size:126px;          /* reduzido ~10% */
+      margin:55px 0;
+      font-size:107px;
       font-weight:bold;
       white-space:nowrap;
       width:100%;
-      max-width:920px;          /* evita que fique muito largo */
+      max-width:900px;
     }
     .btc { color:#f7931a; }
     .eth  { color:#627eea; }
     img {
-      width:135px;              /* reduzido ~10% */
+      width:115px;
       height:auto;
-      margin-right:28px;
+      margin-right:25px;
       vertical-align:middle;
     }
     .price {
-      font-size:126px;
+      font-size:107px;
     }
     #status {
       font-size:28px;
       color:#aaccff;
       font-weight:bold;
-      margin-top:100px;         /* garante que fique visível e mais abaixo */
+      margin-top:110px;
       text-align:center;
       letter-spacing:0.5px;
-      min-height:40px;          /* reserva espaço para evitar corte */
+      min-height:40px;
     }
   </style>
 </head>
@@ -106,14 +109,14 @@
 
     <div class="crypto-item btc">
       <img src="https://cryptologos.cc/logos/bitcoin-btc-logo.svg?v=040" 
-           onerror="this.outerHTML='<span style=\'color:#f7931a; font-size:126px; vertical-align:middle; margin-right:28px;\'>₿</span>'" 
+           onerror="this.outerHTML='<span style=\'color:#f7931a; font-size:107px; vertical-align:middle; margin-right:25px;\'>₿</span>'" 
            alt="BTC">
       BTC <span class="price" id="btc">—</span>
     </div>
 
     <div class="crypto-item eth">
       <img src="https://cryptologos.cc/logos/ethereum-eth-logo.svg?v=040" 
-           onerror="this.outerHTML='<span style=\'color:#627eea; font-size:126px; vertical-align:middle; margin-right:28px;\'>Ξ</span>'" 
+           onerror="this.outerHTML='<span style=\'color:#627eea; font-size:107px; vertical-align:middle; margin-right:25px;\'>Ξ</span>'" 
            alt="ETH">
       ETH <span class="price" id="eth">—</span>
     </div>
@@ -123,15 +126,27 @@
   </div>
 
   <script type="text/javascript">
-    // Tentativa de iniciar vídeo
+    // Tentativa de tela cheia (funciona melhor quando adicionado à tela de início)
+    if (window.navigator.standalone !== true) {
+      // Se não estiver em modo standalone, tenta forçar visualização em tela cheia
+      setTimeout(function() {
+        if (document.documentElement.requestFullscreen) {
+          document.documentElement.requestFullscreen();
+        } else if (document.documentElement.webkitRequestFullscreen) {
+          document.documentElement.webkitRequestFullscreen();
+        }
+      }, 1000);
+    }
+
+    // Início do vídeo após toque (já conhecido)
     var video = document.getElementById('bgvideo');
     function tryPlay() { video.play().catch(function(){}); }
     video.addEventListener('loadedmetadata', tryPlay);
-    setTimeout(tryPlay, 600);
-    setTimeout(tryPlay, 1500);
+    setTimeout(tryPlay, 800);
+    setTimeout(tryPlay, 1800);
     document.addEventListener('touchstart', tryPlay, { once: true });
 
-    // Lógica de preços e contador
+    // Lógica de preços e contador (sem mudança)
     var btcEl = document.getElementById('btc');
     var ethEl = document.getElementById('eth');
     var statusEl = document.getElementById('status');
