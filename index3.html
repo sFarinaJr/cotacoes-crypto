@@ -2,79 +2,85 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=1024, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Cotação BTC e ETH</title>
   <style type="text/css">
     * { margin:0; padding:0; }
     html, body {
       height:100%;
+      width:1024px;
+      margin:0 auto;
       background:#0a1f3a;
       color:white;
       font-family:Arial, Helvetica, sans-serif;
       overflow:hidden;
       text-align:center;
     }
-    #video-container {
+    #video-bg {
       position:fixed;
-      top:0; left:0; right:0; bottom:0;
+      top:0; left:50%;
+      width:1024px;
+      height:768px;
+      margin-left:-512px;
       z-index:1;
     }
-    #bg-video {
-      width:100%;
-      height:100%;
-      object-fit:cover;   /* pode não funcionar no iOS 9 → fallback abaixo */
-      background:#0a1f3a; /* cor de fundo caso vídeo não carregue */
+    #video-bg video {
+      width:1024px;
+      height:768px;
+      object-fit:cover;
     }
     .overlay {
       position:fixed;
-      top:0; left:0; right:0; bottom:0;
-      background:rgba(10,31,58,0.7); /* escurece para texto legível */
+      top:0; left:50%;
+      width:1024px;
+      height:768px;
+      margin-left:-512px;
+      background:rgba(10,31,58,0.65);
       z-index:2;
     }
     .content {
       position:relative;
       z-index:3;
-      height:100%;
+      height:768px;
+      width:1024px;
+      margin:0 auto;
       display:table;
-      width:100%;
     }
     .inner {
       display:table-cell;
       vertical-align:middle;
-      padding:20px;
+      padding:40px 60px;
       box-sizing:border-box;
     }
     h1 {
-      font-size:38px;
-      margin-bottom:25px;
+      font-size:52px;
+      margin-bottom:35px;
     }
     .item {
-      margin:25px 0;
-      font-size:80px;
+      margin:35px 0;
+      font-size:100px;
       font-weight:bold;
     }
     .btc { color:#f7931a; }
     .eth { color:#627eea; }
-    .price {
-      font-size:70px;
-    }
+    .price { font-size:90px; }
     img {
-      width:90px;
+      width:110px;
       vertical-align:middle;
-      margin-right:12px;
+      margin-right:18px;
     }
     #status {
-      font-size:22px;
+      font-size:28px;
       color:#aaccff;
-      margin-top:35px;
+      margin-top:50px;
     }
   </style>
 </head>
 <body>
 
-  <div id="video-container">
-    <video id="bg-video" autoplay loop muted playsinline poster="fundo-poster.jpg">
-      <source src="fundo.mp4" type="video/mp4">
+  <div id="video-bg">
+    <video id="bgvideo" loop muted playsinline poster="fundo-poster.jpg">
+      <source src="fundo btc.mp4" type="video/mp4">
       Seu navegador não suporta vídeo.
     </video>
   </div>
@@ -88,14 +94,14 @@
 
       <div class="item btc">
         <img src="https://cryptologos.cc/logos/bitcoin-btc-logo.svg?v=040" 
-             onerror="this.outerHTML='<span style=\'color:#f7931a; font-size:80px; vertical-align:middle; margin-right:12px;\'>₿</span>'" 
+             onerror="this.outerHTML='<span style=\'color:#f7931a; font-size:100px; vertical-align:middle; margin-right:18px;\'>₿</span>'" 
              alt="BTC">
         BTC <span class="price" id="btc">—</span>
       </div>
 
       <div class="item eth">
         <img src="https://cryptologos.cc/logos/ethereum-eth-logo.svg?v=040" 
-             onerror="this.outerHTML='<span style=\'color:#627eea; font-size:80px; vertical-align:middle; margin-right:12px;\'>Ξ</span>'" 
+             onerror="this.outerHTML='<span style=\'color:#627eea; font-size:100px; vertical-align:middle; margin-right:18px;\'>Ξ</span>'" 
              alt="ETH">
         ETH <span class="price" id="eth">—</span>
       </div>
@@ -106,6 +112,25 @@
   </div>
 
   <script type="text/javascript">
+    // Tentativa de iniciar o vídeo automaticamente + após interação
+    var video = document.getElementById('bgvideo');
+
+    function tryPlay() {
+      video.play().catch(function(err) {
+        // ignora erro silenciosamente (comum no iOS antigo)
+      });
+    }
+
+    video.addEventListener('loadedmetadata', tryPlay);
+    setTimeout(tryPlay, 600);
+    setTimeout(tryPlay, 1500); // segunda tentativa
+
+    // Toque na tela → tenta reproduzir (muito importante no iOS 9)
+    document.addEventListener('touchstart', function() {
+      tryPlay();
+    }, { once: true });
+
+    // Lógica de preços e contador (inalterada)
     var btcEl = document.getElementById('btc');
     var ethEl = document.getElementById('eth');
     var statusEl = document.getElementById('status');
