@@ -16,14 +16,14 @@
       height: 100%;
       width: 1024px;
       margin: 0 auto;
-      background-color: #0a1f3a;
+      /* removido background-color para o vídeo aparecer */
       color: white;
       font-family: Arial, Helvetica, sans-serif;
       overflow: hidden;
       text-align: center;
     }
 
-    /* Vídeo de fundo – centralizado e cobrindo toda a área */
+    /* Vídeo de fundo – ocupa toda a área sem alterar layout */
     #bg-video {
       position: fixed;
       top: 50%;
@@ -39,7 +39,7 @@
     .overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(10, 31, 58, 0.60);
+      background: rgba(10, 31, 58, 0.25); /* bem mais transparente para ver o vídeo */
       z-index: -1;
     }
 
@@ -119,7 +119,6 @@
     var ethEl = document.getElementById('eth');
     var statusEl = document.getElementById('status');
 
-    // Variáveis do contador regressivo
     var countdownInterval = null;
     var lastUpdateStr = '';
     var nextUpdateTime = 0;
@@ -135,8 +134,7 @@
 
     function startCountdownDisplay() {
       if (countdownInterval) clearInterval(countdownInterval);
-
-      nextUpdateTime = Date.now() + 300000; // 5 minutos
+      nextUpdateTime = Date.now() + 300000;
       updateCountdownDisplay();
       countdownInterval = setInterval(updateCountdownDisplay, 1000);
     }
@@ -144,11 +142,9 @@
     function updateCountdownDisplay() {
       var remainingMs = nextUpdateTime - Date.now();
       if (remainingMs < 0) remainingMs = 0;
-
       var remainingSec = Math.floor(remainingMs / 1000);
       var minsLeft = Math.floor(remainingSec / 60);
       var secsLeft = remainingSec % 60;
-
       var countdownText = '(' + minsLeft + ':' + (secsLeft < 10 ? '0' : '') + secsLeft + ')';
       statusEl.innerHTML = lastUpdateStr + ' ' + countdownText;
     }
