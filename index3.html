@@ -61,16 +61,18 @@
       margin: 40px 0;
       font-size: 120px;
       font-weight: bold;
-      background: rgba(0, 0, 0, 0.30);     /* tarja preta 30% de opacidade */
-      padding: 20px 40px;                  /* espaço interno para ficar bonito */
-      border-radius: 16px;                 /* cantos arredondados (opcional, mas fica mais elegante) */
-      backdrop-filter: blur(4px);          /* leve desfoque de fundo – melhora muito a legibilidade */
-      -webkit-backdrop-filter: blur(4px);  /* suporte Safari/iOS antigo */
-      box-shadow: 0 4px 20px rgba(0,0,0,0.4); /* sombra sutil para destacar */
-      min-width: 680px;                    /* garante largura mínima para não ficar muito estreito */
-      display: inline-flex;
+      background: rgba(0, 0, 0, 0.30);
+      padding: 20px 40px;
+      border-radius: 16px;
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      min-width: 720px;                    /* aumentado um pouco para garantir que caiba tudo em uma linha */
+      display: flex;
       align-items: center;
       justify-content: center;
+      white-space: nowrap;                 /* impede quebra de linha */
+      overflow: hidden;                    /* segurança extra */
     }
 
     .btc { color: #f58e11; }
@@ -110,14 +112,14 @@
         src="https://cryptologos.cc/logos/bitcoin-btc-logo.svg?v=040" 
         onerror="this.outerHTML='<span style=\'color:#f7931a; font-size:120px; vertical-align:middle; margin-right:20px;\'>₿</span>'" 
         alt="BTC">
-      BTC<span class="price" id="btc">—</span>
+      BTC&nbsp;&nbsp;<span class="price" id="btc">—</span>
     </div>
     <div class="item eth">
       <img 
         src="https://cryptologos.cc/logos/ethereum-eth-logo.svg?v=040" 
         onerror="this.outerHTML='<span style=\'color:#627eea; font-size:120px; vertical-align:middle; margin-right:20px;\'>Ξ</span>'" 
         alt="ETH">
-      ETH<span class="price" id="eth">—</span>
+      ETH&nbsp;&nbsp;<span class="price" id="eth">—</span>
     </div>
     <div id="status">Carregando...</div>
   </div>
