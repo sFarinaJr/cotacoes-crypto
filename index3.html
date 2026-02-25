@@ -50,42 +50,44 @@
       flex-direction:column;
       justify-content:center;
       align-items:center;
-      padding: 0 60px;
+      padding: 0 50px;
     }
     h1 {
-      font-size:60px;
+      font-size:48px;
       font-weight:bold;
-      margin-bottom:80px;
-      letter-spacing:-1px;
+      margin-bottom:90px;
+      letter-spacing:-0.5px;
       text-align:center;
     }
     .crypto-item {
       display:flex;
       align-items:center;
       justify-content:center;
-      margin:55px 0;
-      font-size:107px;
+      margin:60px 0;
+      font-size:86px;
       font-weight:bold;
       white-space:nowrap;
       width:100%;
-      max-width:900px;
+      max-width:880px;
     }
-    .btc { color:#f7931a; }
-    .eth  { color:#627eea; }
+    .btc, .eth {
+      font-weight:900;          /* negrito bem forte nas linhas de moeda + preço */
+    }
     img {
-      width:115px;
+      width:92px;
       height:auto;
-      margin-right:25px;
+      margin-right:22px;
       vertical-align:middle;
     }
     .price {
-      font-size:107px;
+      font-size:86px;
+      font-weight:900;
     }
     #status {
-      font-size:28px;
+      font-size:26px;
       color:#aaccff;
       font-weight:bold;
-      margin-top:110px;
+      margin-top:120px;
       text-align:center;
       letter-spacing:0.5px;
       min-height:40px;
@@ -109,14 +111,14 @@
 
     <div class="crypto-item btc">
       <img src="https://cryptologos.cc/logos/bitcoin-btc-logo.svg?v=040" 
-           onerror="this.outerHTML='<span style=\'color:#f7931a; font-size:107px; vertical-align:middle; margin-right:25px;\'>₿</span>'" 
+           onerror="this.outerHTML='<span style=\'color:#f7931a; font-size:86px; vertical-align:middle; margin-right:22px;\'>₿</span>'" 
            alt="BTC">
       BTC <span class="price" id="btc">—</span>
     </div>
 
     <div class="crypto-item eth">
       <img src="https://cryptologos.cc/logos/ethereum-eth-logo.svg?v=040" 
-           onerror="this.outerHTML='<span style=\'color:#627eea; font-size:107px; vertical-align:middle; margin-right:25px;\'>Ξ</span>'" 
+           onerror="this.outerHTML='<span style=\'color:#627eea; font-size:86px; vertical-align:middle; margin-right:22px;\'>Ξ</span>'" 
            alt="ETH">
       ETH <span class="price" id="eth">—</span>
     </div>
@@ -126,19 +128,16 @@
   </div>
 
   <script type="text/javascript">
-    // Tentativa de tela cheia (funciona melhor quando adicionado à tela de início)
+    // Tela cheia (melhor quando adicionado à tela de início)
     if (window.navigator.standalone !== true) {
-      // Se não estiver em modo standalone, tenta forçar visualização em tela cheia
       setTimeout(function() {
-        if (document.documentElement.requestFullscreen) {
-          document.documentElement.requestFullscreen();
-        } else if (document.documentElement.webkitRequestFullscreen) {
+        if (document.documentElement.webkitRequestFullscreen) {
           document.documentElement.webkitRequestFullscreen();
         }
-      }, 1000);
+      }, 800);
     }
 
-    // Início do vídeo após toque (já conhecido)
+    // Início do vídeo após toque
     var video = document.getElementById('bgvideo');
     function tryPlay() { video.play().catch(function(){}); }
     video.addEventListener('loadedmetadata', tryPlay);
@@ -146,7 +145,7 @@
     setTimeout(tryPlay, 1800);
     document.addEventListener('touchstart', tryPlay, { once: true });
 
-    // Lógica de preços e contador (sem mudança)
+    // Lógica de preços e contador
     var btcEl = document.getElementById('btc');
     var ethEl = document.getElementById('eth');
     var statusEl = document.getElementById('status');
