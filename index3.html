@@ -2,157 +2,130 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=1024, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+  <meta name="viewport" content="width=1024, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Cotação BTC e ETH</title>
+
   <style type="text/css">
-    * { margin:0; padding:0; box-sizing:border-box; }
+    * {
+      margin: 0;
+      padding: 0;
+    }
     html, body {
-      height:100%;
-      width:1024px;
-      margin:0 auto;
-      background:#0a1f3a;
-      color:white;
-      font-family:Arial, Helvetica, sans-serif;
-      overflow:hidden;
-      -webkit-text-size-adjust: none;
+      height: 100%;
+      width: 1024px;
+      margin: 0 auto;
+      background-color: #0a1f3a;
+      color: white;
+      font-family: Arial, Helvetica, sans-serif;
+      overflow: hidden;
+      text-align: center;
     }
-    #video-bg {
-      position:fixed;
-      top:0; left:50%;
-      width:1024px;
-      height:768px;
-      margin-left:-512px;
-      z-index:1;
+
+    /* Vídeo de fundo – sem alterar o resto da página */
+    #bg-video {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      min-width: 100%;
+      min-height: 100%;
+      width: auto;
+      height: auto;
+      transform: translate(-50%, -50%);
+      z-index: -2;
     }
-    #video-bg video {
-      width:1024px;
-      height:768px;
-      object-fit:cover;
-    }
+
     .overlay {
-      position:fixed;
-      top:0; left:50%;
-      width:1024px;
-      height:768px;
-      margin-left:-512px;
-      background:rgba(10,31,58,0.65);
-      z-index:2;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(10, 31, 58, 0.60); /* escurece levemente para legibilidade */
+      z-index: -1;
     }
-    .main-container {
-      position:relative;
-      z-index:3;
-      width:1024px;
-      height:768px;
-      margin:0 auto;
-      display:flex;
-      flex-direction:column;
-      justify-content:center;
-      align-items:center;
-      padding: 0 50px;
+
+    .container {
+      height: 100%;
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
     }
+
     h1 {
-      font-size:48px;
-      font-weight:bold;
-      margin-bottom:90px;
-      letter-spacing:-0.5px;
-      text-align:center;
+      font-size: 60px;
+      margin-bottom: 40px;
+      color: #ffffff;
     }
-    .crypto-item {
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      margin:60px 0;
-      font-size:86px;
-      font-weight:bold;
-      white-space:nowrap;
-      width:100%;
-      max-width:880px;
+
+    .item {
+      margin: 40px 0;
+      font-size: 120px;
+      font-weight: bold;
     }
-    .btc, .eth {
-      font-weight:900;          /* negrito bem forte nas linhas de moeda + preço */
-    }
-    img {
-      width:92px;
-      height:auto;
-      margin-right:22px;
-      vertical-align:middle;
-    }
+
+    .btc { color: #f7931a; }
+    .eth { color: #627eea; }
+
     .price {
-      font-size:86px;
-      font-weight:900;
+      font-size: 108px;
+      font-weight: bold;
     }
+
+    img {
+      width: 120px;
+      height: auto;
+      vertical-align: middle;
+      margin-right: 20px;
+    }
+
     #status {
-      font-size:26px;
-      color:#aaccff;
-      font-weight:bold;
-      margin-top:120px;
-      text-align:center;
-      letter-spacing:0.5px;
-      min-height:40px;
+      font-size: 28px;
+      color: #aaccff;
+      margin-top: 60px;
     }
   </style>
 </head>
 <body>
 
-  <div id="video-bg">
-    <video id="bgvideo" loop muted playsinline poster="fundo-poster.jpg">
-      <source src="fundo btc.mp4" type="video/mp4">
-      Seu navegador não suporta vídeo.
-    </video>
-  </div>
+  <!-- Vídeo de fundo -->
+  <video id="bg-video" autoplay loop muted playsinline>
+    <source src="fundo btc.mp4" type="video/mp4">
+    <!-- fallback caso não carregue -->
+    Seu navegador não suporta vídeo de fundo.
+  </video>
 
   <div class="overlay"></div>
 
-  <div class="main-container">
-
+  <div class="container">
     <h1>Cotações Crypto</h1>
-
-    <div class="crypto-item btc">
-      <img src="https://cryptologos.cc/logos/bitcoin-btc-logo.svg?v=040" 
-           onerror="this.outerHTML='<span style=\'color:#f7931a; font-size:86px; vertical-align:middle; margin-right:22px;\'>₿</span>'" 
-           alt="BTC">
+    <div class="item btc">
+      <img 
+        src="https://cryptologos.cc/logos/bitcoin-btc-logo.svg?v=040" 
+        onerror="this.outerHTML='<span style=\'color:#f7931a; font-size:120px; vertical-align:middle; margin-right:20px;\'>₿</span>'" 
+        alt="BTC">
       BTC <span class="price" id="btc">—</span>
     </div>
-
-    <div class="crypto-item eth">
-      <img src="https://cryptologos.cc/logos/ethereum-eth-logo.svg?v=040" 
-           onerror="this.outerHTML='<span style=\'color:#627eea; font-size:86px; vertical-align:middle; margin-right:22px;\'>Ξ</span>'" 
-           alt="ETH">
+    <div class="item eth">
+      <img 
+        src="https://cryptologos.cc/logos/ethereum-eth-logo.svg?v=040" 
+        onerror="this.outerHTML='<span style=\'color:#627eea; font-size:120px; vertical-align:middle; margin-right:20px;\'>Ξ</span>'" 
+        alt="ETH">
       ETH <span class="price" id="eth">—</span>
     </div>
-
     <div id="status">Carregando...</div>
-
   </div>
 
   <script type="text/javascript">
-    // Tela cheia (melhor quando adicionado à tela de início)
-    if (window.navigator.standalone !== true) {
-      setTimeout(function() {
-        if (document.documentElement.webkitRequestFullscreen) {
-          document.documentElement.webkitRequestFullscreen();
-        }
-      }, 800);
-    }
-
-    // Início do vídeo após toque
-    var video = document.getElementById('bgvideo');
-    function tryPlay() { video.play().catch(function(){}); }
-    video.addEventListener('loadedmetadata', tryPlay);
-    setTimeout(tryPlay, 800);
-    setTimeout(tryPlay, 1800);
-    document.addEventListener('touchstart', tryPlay, { once: true });
-
-    // Lógica de preços e contador
     var btcEl = document.getElementById('btc');
     var ethEl = document.getElementById('eth');
     var statusEl = document.getElementById('status');
 
-    var countdownTimer = null;
-    var lastUpdateText = '';
-    var nextUpdate = 0;
+    // Variáveis do contador regressivo
+    var countdownInterval = null;
+    var lastUpdateStr = '';
+    var nextUpdateTime = 0;
 
     function formatNumber(num) {
       num = parseFloat(num);
@@ -163,28 +136,31 @@
       return parts.join(',');
     }
 
-    function updateCountdown() {
-      var agora = new Date().getTime();
-      var falta = nextUpdate - agora;
-      if (falta < 0) falta = 0;
-      var segundos = Math.floor(falta / 1000);
-      var min = Math.floor(segundos / 60);
-      var sec = segundos % 60;
-      var texto = '(' + min + ':' + (sec < 10 ? '0' : '') + sec + ')';
-      statusEl.innerHTML = lastUpdateText + ' ' + texto;
+    function startCountdownDisplay() {
+      if (countdownInterval) clearInterval(countdownInterval);
+
+      nextUpdateTime = Date.now() + 300000; // 5 minutos
+      updateCountdownDisplay();
+      countdownInterval = setInterval(updateCountdownDisplay, 1000);
     }
 
-    function startCountdown() {
-      if (countdownTimer) clearInterval(countdownTimer);
-      nextUpdate = new Date().getTime() + 300000;
-      updateCountdown();
-      countdownTimer = setInterval(updateCountdown, 1000);
+    function updateCountdownDisplay() {
+      var remainingMs = nextUpdateTime - Date.now();
+      if (remainingMs < 0) remainingMs = 0;
+
+      var remainingSec = Math.floor(remainingMs / 1000);
+      var minsLeft = Math.floor(remainingSec / 60);
+      var secsLeft = remainingSec % 60;
+
+      var countdownText = '(' + minsLeft + ':' + (secsLeft < 10 ? '0' : '') + secsLeft + ')';
+      statusEl.innerHTML = lastUpdateStr + ' ' + countdownText;
     }
 
     function loadPrices() {
-      if (countdownTimer) {
-        clearInterval(countdownTimer);
-        countdownTimer = null;
+      // Para o contador enquanto busca novos preços
+      if (countdownInterval) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
       }
       statusEl.innerHTML = 'Buscando preços...';
 
@@ -193,46 +169,54 @@
       xhr.open('GET', 'crypto_prices.txt?_=' + ts, true);
 
       xhr.onreadystatechange = function() {
-        if (xhr.readyState == 4) {
-          if (xhr.status == 200) {
-            var linhas = xhr.responseText.split('\n');
-            var btc = null, eth = null;
+        if (xhr.readyState === 4) {
+          if (xhr.status === 200) {
+            var text = xhr.responseText;
+            var lines = text.split('\n');
+            var btcVal = null;
+            var ethVal = null;
 
-            for (var i = 0; i < linhas.length; i++) {
-              var linha = linhas[i].trim();
-              if (!linha || linha.charAt(0) === '#') continue;
-              if (linha.indexOf('BTC') !== -1) {
-                var partes = linha.split(':');
-                if (partes.length > 1) btc = partes[1].trim().split(' ')[0];
+            for (var i = 0; i < lines.length; i++) {
+              var line = lines[i].trim();
+              if (line === '' || line.charAt(0) === '#') continue;
+
+              if (line.indexOf('BTC') !== -1) {
+                var parts = line.split(':');
+                if (parts.length > 1) btcVal = parts[1].trim().split(' ')[0];
               }
-              if (linha.indexOf('ETH') !== -1) {
-                var partes = linha.split(':');
-                if (partes.length > 1) eth = partes[1].trim().split(' ')[0];
+              if (line.indexOf('ETH') !== -1) {
+                var parts = line.split(':');
+                if (parts.length > 1) ethVal = parts[1].trim().split(' ')[0];
               }
             }
 
-            if (btc !== null && eth !== null) {
-              btcEl.innerHTML = formatNumber(btc);
-              ethEl.innerHTML = formatNumber(eth);
+            if (btcVal !== null && ethVal !== null) {
+              btcEl.innerHTML = formatNumber(btcVal);
+              ethEl.innerHTML = formatNumber(ethVal);
 
-              var agora = new Date();
-              var h = agora.getHours();
-              var m = agora.getMinutes();
-              lastUpdateText = 'Atualizado às ' + h + ':' + (m < 10 ? '0' : '') + m;
+              // Registra horário da atualização
+              var d = new Date();
+              var h = d.getHours();
+              var m = d.getMinutes();
+              lastUpdateStr = 'Atualizado às ' + h + ':' + (m < 10 ? '0' : '') + m;
 
-              startCountdown();
+              // Inicia contagem regressiva de 5 minutos
+              startCountdownDisplay();
             } else {
               statusEl.innerHTML = 'Erro: preços não encontrados';
             }
           } else {
-            statusEl.innerHTML = 'Erro ao carregar';
+            statusEl.innerHTML = 'Erro ao carregar (status ' + xhr.status + ')';
           }
         }
       };
-      xhr.send();
+      xhr.send(null);
     }
 
+    // Primeira carga
     loadPrices();
+
+    // Atualiza automaticamente a cada 5 minutos
     setInterval(loadPrices, 300000);
   </script>
 </body>
