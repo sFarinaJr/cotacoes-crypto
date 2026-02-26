@@ -67,12 +67,12 @@
       backdrop-filter: blur(4px);
       -webkit-backdrop-filter: blur(4px);
       box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-      min-width: 720px;                    /* aumentado um pouco para garantir que caiba tudo em uma linha */
+      min-width: 720px;
       display: flex;
       align-items: center;
       justify-content: center;
-      white-space: nowrap;                 /* impede quebra de linha */
-      overflow: hidden;                    /* segurança extra */
+      white-space: nowrap;
+      overflow: hidden;
     }
 
     .btc { color: #f58e11; }
@@ -131,7 +131,6 @@
 
     var countdownInterval = null;
     var lastUpdateStr = '';
-    var nextUpdateTime = 0;
 
     function formatNumber(num) {
       num = parseFloat(num);
@@ -142,21 +141,59 @@
       return parts.join(',');
     }
 
-    function startCountdownDisplay() {
+    function startCountdownDisplay(targetTimeMs) {
       if (countdownInterval) clearInterval(countdownInterval);
-      nextUpdateTime = Date.now() + 300000;
-      updateCountdownDisplay();
-      countdownInterval = setInterval(updateCountdownDisplay, 1000);
+
+      function update() {
+        var now = Date.now();
+        var remainingMs = targetTimeMs - now;
+        if (remainingMs <= 0) {
+          remainingMs = 0;
+          // O próximo update já foi acionado pelo setTimeout
+        }
+        var remainingSec = Math.floor(remainingMs / 1000);
+        var minsLeft = Math.floor(remainingSec / 60);
+        var secsLeft = remainingSec % 60;
+        var countdownText = '(' + minsLeft + ':' + (secsLeft < 10 ? '0' : '') + secsLeft + ')';
+        statusEl.innerHTML = lastUpdateStr + ' ' + countdownText;
+      }
+
+      update();
+      countdownInterval = setInterval(update, 1000);
     }
 
-    function updateCountdownDisplay() {
-      var remainingMs = nextUpdateTime - Date.now();
-      if (remainingMs < 0) remainingMs = 0;
-      var remainingSec = Math.floor(remainingMs / 1000);
-      var minsLeft = Math.floor(remainingSec / 60);
-      var secsLeft = remainingSec % 60;
-      var countdownText = '(' + minsLeft + ':' + (secsLeft < 10 ? '0' : '') + secsLeft + ')';
-      statusEl.innerHTML = lastUpdateStr + ' ' + countdownText;
+    function scheduleNextUpdate() {
+      var now = new Date();
+      var minutes = now.getMinutes();
+      var seconds = now.getSeconds();
+      var ms = now.getMilliseconds();
+
+      // Encontra quantos minutos faltam para o próximo múltiplo de 5
+      var minutesToNext = 5 - (minutes % 5);
+      if (minutesToNext === 5) minutesToNext = 0;
+
+      // Se já passou do múltiplo exato, vai para o próximo
+      if (minutesToNext === 0 && seconds === 0 && ms < 50) {
+        // Estamos bem no instante → atualiza agora e agenda +5min
+        loadPrices();
+        setTimeout(scheduleNextUpdate, 300000);
+        return;
+      }
+
+      var delayMs = minutesToNext * 60000 - seconds * 1000 - ms;
+
+      // Se delay for muito pequeno ou negativo → força atualização imediata
+      if (delayMs < 500) {
+        loadPrices();
+        setTimeout(scheduleNextUpdate, 300000);
+      } else {
+        setTimeout(loadPricesAndSchedule, delayMs);
+      }
+    }
+
+    function loadPricesAndSchedule() {
+      loadPrices();
+      setTimeout(scheduleNextUpdate, 300000); // já agenda o próximo ciclo
     }
 
     function loadPrices() {
@@ -201,7 +238,17 @@
               var m = d.getMinutes();
               lastUpdateStr = 'Atualizado às ' + h + ':' + (m < 10 ? '0' : '') + m;
 
-              startCountdownDisplay();
+              // Calcula o próximo múltiplo de 5 minutos
+              var nextMinutes = Math.ceil((m + 1) / 5) * 5;
+              var nextDate = new Date(d);
+              nextDate.setMinutes(nextMinutes, 0, 0);
+              if (nextMinutes >= 60) {
+                nextDate.setHours(nextDate.getHours() + 1);
+                nextDate.setMinutes(nextMinutes - 60);
+              }
+              var targetMs = nextDate.getTime();
+
+              startCountdownDisplay(targetMs);
             } else {
               statusEl.innerHTML = 'Erro: preços não encontrados';
             }
@@ -213,8 +260,8 @@
       xhr.send(null);
     }
 
-    loadPrices();
-    setInterval(loadPrices, 300000);
+    // Inicia tudo
+    scheduleNextUpdate();
   </script>
 </body>
 </html>
