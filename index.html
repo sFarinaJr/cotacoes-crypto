@@ -6,7 +6,6 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Cotação BTC e ETH</title>
-
   <style type="text/css">
     * { margin: 0; padding: 0; }
     html, body {
@@ -54,38 +53,32 @@
   </style>
 </head>
 <body>
-
   <video id="bg-video" autoplay loop muted playsinline>
     <source src="fundo btc.mp4" type="video/mp4">
   </video>
   <div class="overlay"></div>
-
   <div class="container">
     <h1>Cotações Crypto</h1>
     <div class="item btc">
-      <img src="https://cryptologos.cc/logos/bitcoin-btc-logo.svg?v=040" 
+      <img src="https://cryptologos.cc/logos/bitcoin-btc-logo.svg?v=040"
            onerror="this.outerHTML='<span style=\'color:#f7931a; font-size:120px; vertical-align:middle; margin-right:20px;\'>₿</span>'" alt="BTC">
       BTC&nbsp;&nbsp;<span class="price" id="btc">—</span>
     </div>
     <div class="item eth">
-      <img src="https://cryptologos.cc/logos/ethereum-eth-logo.svg?v=040" 
+      <img src="https://cryptologos.cc/logos/ethereum-eth-logo.svg?v=040"
            onerror="this.outerHTML='<span style=\'color:#627eea; font-size:120px; vertical-align:middle; margin-right:20px;\'>Ξ</span>'" alt="ETH">
       ETH&nbsp;&nbsp;<span class="price" id="eth">—</span>
     </div>
     <div id="status">Carregando...</div>
   </div>
-
   <script type="text/javascript">
     var btcEl = document.getElementById('btc');
     var ethEl = document.getElementById('eth');
     var statusEl = document.getElementById('status');
-
     var countdownInterval = null;
     var lastUpdateStr = '';
-    var timeOffset = 0;   // diferença entre hora da internet e relógio do iPad
-
+    var timeOffset = 0; // diferença entre hora da internet e relógio do iPad
     function getRealMs() { return Date.now() + timeOffset; }
-
     function syncServerTime(callback) {
       var xhr = new XMLHttpRequest();
       xhr.open('HEAD', 'https://raw.githubusercontent.com/sfarinajr/ipad-dashboard/main/imagensPNG.txt', true);
@@ -101,7 +94,6 @@
       };
       xhr.send();
     }
-
     function formatNumber(num) {
       num = parseFloat(num);
       if (isNaN(num)) return '—';
@@ -110,7 +102,6 @@
       parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
       return parts.join(',');
     }
-
     function startCountdownDisplay(targetTimeMs) {
       if (countdownInterval) clearInterval(countdownInterval);
       function update() {
@@ -125,42 +116,33 @@
       update();
       countdownInterval = setInterval(update, 1000);
     }
-
     function scheduleNextUpdate() {
       var now = new Date(getRealMs());
       var minutes = now.getMinutes();
       var seconds = now.getSeconds();
       var ms = now.getMilliseconds();
-
       var minutesToNext = 5 - (minutes % 5);
       if (minutesToNext === 5) minutesToNext = 0;
-
       var delayMs = minutesToNext * 60000 - seconds * 1000 - ms;
       if (delayMs < 500) delayMs = 300000;
-
       setTimeout(loadPricesAndSchedule, delayMs);
     }
-
     function loadPricesAndSchedule() {
       loadPrices();
       setTimeout(scheduleNextUpdate, 300000);
     }
-
     function loadPrices() {
       if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
       statusEl.innerHTML = 'Buscando preços...';
-
       var xhr = new XMLHttpRequest();
       var ts = new Date().getTime();
       xhr.open('GET', 'crypto_prices.txt?_=' + ts, true);
-
       xhr.onreadystatechange = function() {
         if (xhr.readyState === 4) {
           if (xhr.status === 200) {
             var text = xhr.responseText;
             var lines = text.split('\n');
             var btcVal = null, ethVal = null;
-
             for (var i = 0; i < lines.length; i++) {
               var line = lines[i].trim();
               if (line === '' || line.charAt(0) === '#') continue;
@@ -173,23 +155,20 @@
                 if (parts.length > 1) ethVal = parts[1].trim().split(' ')[0];
               }
             }
-
             if (btcVal !== null && ethVal !== null) {
               btcEl.innerHTML = formatNumber(btcVal);
               ethEl.innerHTML = formatNumber(ethVal);
-
               var d = new Date(getRealMs());
               var h = d.getHours();
               var m = d.getMinutes();
               lastUpdateStr = 'Atualizado às ' + h + ':' + (m < 10 ? '0' : '') + m;
-
               var nextMinutes = Math.ceil((m + 1) / 5) * 5;
               var nextDate = new Date(d);
-              nextDate.setMinutes(nextMinutes, 0, 0);
               if (nextMinutes >= 60) {
                 nextDate.setHours(nextDate.getHours() + 1);
-                nextDate.setMinutes(nextMinutes - 60);
+                nextMinutes = nextMinutes - 60;
               }
+              nextDate.setMinutes(nextMinutes, 0, 0);
               startCountdownDisplay(nextDate.getTime());
             } else {
               statusEl.innerHTML = 'Erro: preços não encontrados';
@@ -201,7 +180,6 @@
       };
       xhr.send(null);
     }
-
     // Início
     syncServerTime(function() {
       scheduleNextUpdate();
