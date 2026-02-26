@@ -2,10 +2,11 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=1024, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Cotação BTC e ETH</title>
+
   <style type="text/css">
     * {
       margin: 0;
@@ -13,53 +14,97 @@
     }
     html, body {
       height: 100%;
-      background-color: #0a1f3a; /* Fundo levemente azul escuro */
+      width: 1024px;
+      margin: 0 auto;
       color: white;
       font-family: Arial, Helvetica, sans-serif;
       overflow: hidden;
       text-align: center;
     }
+
+    #bg-video {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      min-width: 100%;
+      min-height: 100%;
+      width: auto;
+      height: auto;
+      transform: translate(-50%, -50%);
+      z-index: -2;
+    }
+
+    .overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(10, 31, 58, 0.25);
+      z-index: -1;
+    }
+
     .container {
       height: 100%;
+      position: relative;
+      z-index: 1;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
     }
+
     h1 {
       font-size: 60px;
       margin-bottom: 40px;
       color: #ffffff;
     }
+
     .item {
       margin: 40px 0;
-      font-size: 120px; /* Símbolo grande */
+      font-size: 120px;
       font-weight: bold;
+      background: rgba(0, 0, 0, 0.30);
+      padding: 20px 40px;
+      border-radius: 16px;
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      min-width: 720px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap;
+      overflow: hidden;
     }
-    .btc {
-      color: #f7931a; /* Laranja Bitcoin */
-    }
-    .eth {
-      color: #627eea; /* Roxo Ethereum */
-    }
+
+    .btc { color: #f58e11; }
+    .eth { color: #edc40c; }
+
     .price {
-      font-size: 108px; /* Preço ainda maior */
+      font-size: 108px;
       font-weight: bold;
     }
+
     img {
       width: 120px;
       height: auto;
       vertical-align: middle;
       margin-right: 20px;
     }
+
     #status {
       font-size: 28px;
-      color: #aaccff; /* Azul claro para contraste */
+      color: #aaccff;
       margin-top: 60px;
     }
   </style>
 </head>
 <body>
+
+  <video id="bg-video" autoplay loop muted playsinline>
+    <source src="fundo btc.mp4" type="video/mp4">
+  </video>
+
+  <div class="overlay"></div>
+
   <div class="container">
     <h1>Cotações Crypto</h1>
     <div class="item btc">
@@ -67,21 +112,26 @@
         src="https://cryptologos.cc/logos/bitcoin-btc-logo.svg?v=040" 
         onerror="this.outerHTML='<span style=\'color:#f7931a; font-size:120px; vertical-align:middle; margin-right:20px;\'>₿</span>'" 
         alt="BTC">
-      BTC <span class="price" id="btc">—</span>
+      BTC&nbsp;&nbsp;<span class="price" id="btc">—</span>
     </div>
     <div class="item eth">
       <img 
         src="https://cryptologos.cc/logos/ethereum-eth-logo.svg?v=040" 
         onerror="this.outerHTML='<span style=\'color:#627eea; font-size:120px; vertical-align:middle; margin-right:20px;\'>Ξ</span>'" 
         alt="ETH">
-      ETH <span class="price" id="eth">—</span>
+      ETH&nbsp;&nbsp;<span class="price" id="eth">—</span>
     </div>
     <div id="status">Carregando...</div>
   </div>
+
   <script type="text/javascript">
     var btcEl = document.getElementById('btc');
     var ethEl = document.getElementById('eth');
     var statusEl = document.getElementById('status');
+
+    var countdownInterval = null;
+    var lastUpdateStr = '';
+
     function formatNumber(num) {
       num = parseFloat(num);
       if (isNaN(num)) return '—';
@@ -90,11 +140,73 @@
       parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
       return parts.join(',');
     }
+
+    function startCountdownDisplay(targetTimeMs) {
+      if (countdownInterval) clearInterval(countdownInterval);
+
+      function update() {
+        var now = Date.now();
+        var remainingMs = targetTimeMs - now;
+        if (remainingMs <= 0) {
+          remainingMs = 0;
+          // O próximo update já foi acionado pelo setTimeout
+        }
+        var remainingSec = Math.floor(remainingMs / 1000);
+        var minsLeft = Math.floor(remainingSec / 60);
+        var secsLeft = remainingSec % 60;
+        var countdownText = '(' + minsLeft + ':' + (secsLeft < 10 ? '0' : '') + secsLeft + ')';
+        statusEl.innerHTML = lastUpdateStr + ' ' + countdownText;
+      }
+
+      update();
+      countdownInterval = setInterval(update, 1000);
+    }
+
+    function scheduleNextUpdate() {
+      var now = new Date();
+      var minutes = now.getMinutes();
+      var seconds = now.getSeconds();
+      var ms = now.getMilliseconds();
+
+      // Encontra quantos minutos faltam para o próximo múltiplo de 5
+      var minutesToNext = 5 - (minutes % 5);
+      if (minutesToNext === 5) minutesToNext = 0;
+
+      // Se já passou do múltiplo exato, vai para o próximo
+      if (minutesToNext === 0 && seconds === 0 && ms < 50) {
+        // Estamos bem no instante → atualiza agora e agenda +5min
+        loadPrices();
+        setTimeout(scheduleNextUpdate, 300000);
+        return;
+      }
+
+      var delayMs = minutesToNext * 60000 - seconds * 1000 - ms;
+
+      // Se delay for muito pequeno ou negativo → força atualização imediata
+      if (delayMs < 500) {
+        loadPrices();
+        setTimeout(scheduleNextUpdate, 300000);
+      } else {
+        setTimeout(loadPricesAndSchedule, delayMs);
+      }
+    }
+
+    function loadPricesAndSchedule() {
+      loadPrices();
+      setTimeout(scheduleNextUpdate, 300000); // já agenda o próximo ciclo
+    }
+
     function loadPrices() {
+      if (countdownInterval) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+      }
       statusEl.innerHTML = 'Buscando preços...';
+
       var xhr = new XMLHttpRequest();
       var ts = new Date().getTime();
       xhr.open('GET', 'crypto_prices.txt?_=' + ts, true);
+
       xhr.onreadystatechange = function() {
         if (xhr.readyState === 4) {
           if (xhr.status === 200) {
@@ -102,9 +214,11 @@
             var lines = text.split('\n');
             var btcVal = null;
             var ethVal = null;
+
             for (var i = 0; i < lines.length; i++) {
               var line = lines[i].trim();
               if (line === '' || line.charAt(0) === '#') continue;
+
               if (line.indexOf('BTC') !== -1) {
                 var parts = line.split(':');
                 if (parts.length > 1) btcVal = parts[1].trim().split(' ')[0];
@@ -114,13 +228,27 @@
                 if (parts.length > 1) ethVal = parts[1].trim().split(' ')[0];
               }
             }
+
             if (btcVal !== null && ethVal !== null) {
               btcEl.innerHTML = formatNumber(btcVal);
               ethEl.innerHTML = formatNumber(ethVal);
+
               var d = new Date();
               var h = d.getHours();
               var m = d.getMinutes();
-              statusEl.innerHTML = 'Atualizado às ' + h + ':' + (m < 10 ? '0' : '') + m;
+              lastUpdateStr = 'Atualizado às ' + h + ':' + (m < 10 ? '0' : '') + m;
+
+              // Calcula o próximo múltiplo de 5 minutos
+              var nextMinutes = Math.ceil((m + 1) / 5) * 5;
+              var nextDate = new Date(d);
+              nextDate.setMinutes(nextMinutes, 0, 0);
+              if (nextMinutes >= 60) {
+                nextDate.setHours(nextDate.getHours() + 1);
+                nextDate.setMinutes(nextMinutes - 60);
+              }
+              var targetMs = nextDate.getTime();
+
+              startCountdownDisplay(targetMs);
             } else {
               statusEl.innerHTML = 'Erro: preços não encontrados';
             }
@@ -131,8 +259,9 @@
       };
       xhr.send(null);
     }
-    loadPrices();
-    setInterval(loadPrices, 300000); // 5 minutos
+
+    // Inicia tudo
+    scheduleNextUpdate();
   </script>
 </body>
 </html>
