@@ -160,7 +160,8 @@
 
     function syncServerTime(callback) {
       var xhr = new XMLHttpRequest();
-      xhr.open('HEAD', 'crypto_prices.txt', true);
+      var url = 'crypto_prices.txt?_=' + new Date().getTime();  // Cache bust para HEAD também
+      xhr.open('HEAD', url, true);
       xhr.onreadystatechange = function() {
         if (xhr.readyState === 4) {
           var dateStr = xhr.getResponseHeader('Date');
@@ -211,7 +212,8 @@
       statusEl.innerHTML = 'Buscando preços...';
 
       var xhr = new XMLHttpRequest();
-      xhr.open('GET', 'crypto_prices.txt', true);
+      var url = 'crypto_prices.txt?_=' + new Date().getTime();  // Adicionado cache bust para evitar cache do navegador
+      xhr.open('GET', url, true);
       xhr.timeout = 10000;
 
       xhr.onreadystatechange = function() {
