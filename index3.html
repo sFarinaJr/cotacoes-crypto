@@ -8,7 +8,10 @@
   <title>Cotação BTC e ETH</title>
 
   <style type="text/css">
-    * { margin: 0; padding: 0; }
+    * {
+      margin: 0;
+      padding: 0;
+    }
     html, body {
       height: 100%;
       width: 1024px;
@@ -18,56 +21,104 @@
       overflow: hidden;
       text-align: center;
     }
+
     #bg-video {
       position: fixed;
-      top: 50%; left: 50%;
-      min-width: 100%; min-height: 100%;
-      width: auto; height: auto;
+      top: 50%;
+      left: 50%;
+      min-width: 100%;
+      min-height: 100%;
+      width: auto;
+      height: auto;
       transform: translate(-50%, -50%);
       z-index: -2;
     }
+
     .overlay {
-      position: fixed; top:0; left:0; right:0; bottom:0;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(10, 31, 58, 0.25);
       z-index: -1;
     }
+
     .container {
-      height: 100%; position: relative; z-index: 1;
-      display: flex; flex-direction: column;
-      justify-content: center; align-items: center;
+      height: 100%;
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
     }
-    h1 { font-size: 60px; margin-bottom: 40px; color: #ffffff; }
+
+    h1 {
+      font-size: 60px;
+      margin-bottom: 40px;
+      color: #ffffff;
+    }
+
     .item {
-      margin: 40px 0; font-size: 120px; font-weight: bold;
-      background: rgba(0,0,0,0.30); padding: 20px 40px;
-      border-radius: 16px; backdrop-filter: blur(4px);
+      margin: 40px 0;
+      font-size: 120px;
+      font-weight: bold;
+      background: rgba(0, 0, 0, 0.30);
+      padding: 20px 40px;
+      border-radius: 16px;
+      backdrop-filter: blur(4px);
       -webkit-backdrop-filter: blur(4px);
       box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-      min-width: 720px; display: flex; align-items: center;
-      justify-content: center; white-space: nowrap; overflow: hidden;
+      min-width: 720px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap;
+      overflow: hidden;
     }
+
     .btc { color: #f58e11; }
     .eth { color: #edc40c; }
-    .price { font-size: 108px; font-weight: bold; }
-    img { width: 120px; height: auto; vertical-align: middle; margin-right: 20px; }
-    #status { font-size: 28px; color: #aaccff; margin-top: 60px; }
+
+    .price {
+      font-size: 108px;
+      font-weight: bold;
+    }
+
+    img {
+      width: 120px;
+      height: auto;
+      vertical-align: middle;
+      margin-right: 20px;
+    }
+
+    #status {
+      font-size: 28px;
+      color: #aaccff;
+      margin-top: 60px;
+    }
   </style>
 </head>
 <body>
-  <video id="bg-video" autoplay loop muted playsinline poster="fallback-image.jpg">
+
+  <video id="bg-video" autoplay loop muted playsinline>
     <source src="fundo btc.mp4" type="video/mp4">
   </video>
+
   <div class="overlay"></div>
+
   <div class="container">
     <h1>Cotações Crypto</h1>
     <div class="item btc">
-      <img src="https://cryptologos.cc/logos/bitcoin-btc-logo.svg?v=040"
-           onerror="this.outerHTML='<span style=\'color:#f7931a; font-size:120px; vertical-align:middle; margin-right:20px;\'>₿</span>'" alt="BTC">
+      <img 
+        src="https://cryptologos.cc/logos/bitcoin-btc-logo.svg?v=040" 
+        onerror="this.outerHTML='<span style=\'color:#f7931a; font-size:120px; vertical-align:middle; margin-right:20px;\'>₿</span>'" 
+        alt="BTC">
       BTC&nbsp;&nbsp;<span class="price" id="btc">—</span>
     </div>
     <div class="item eth">
-      <img src="https://cryptologos.cc/logos/ethereum-eth-logo.svg?v=040"
-           onerror="this.outerHTML='<span style=\'color:#627eea; font-size:120px; vertical-align:middle; margin-right:20px;\'>Ξ</span>'" alt="ETH">
+      <img 
+        src="https://cryptologos.cc/logos/ethereum-eth-logo.svg?v=040" 
+        onerror="this.outerHTML='<span style=\'color:#627eea; font-size:120px; vertical-align:middle; margin-right:20px;\'>Ξ</span>'" 
+        alt="ETH">
       ETH&nbsp;&nbsp;<span class="price" id="eth">—</span>
     </div>
     <div id="status">Carregando...</div>
@@ -85,7 +136,7 @@
 
     function syncServerTime(callback) {
       var xhr = new XMLHttpRequest();
-      xhr.open('HEAD', 'crypto_prices.txt', true); // usando o mesmo arquivo para sync (mais rápido se local)
+      xhr.open('HEAD', 'crypto_prices.txt', true);
       xhr.onreadystatechange = function() {
         if (xhr.readyState === 4) {
           var dateStr = xhr.getResponseHeader('Date');
@@ -110,6 +161,7 @@
 
     function startCountdownDisplay(targetTimeMs) {
       if (countdownInterval) clearInterval(countdownInterval);
+
       function update() {
         var remainingMs = targetTimeMs - getRealMs();
         if (remainingMs <= 0) {
@@ -124,6 +176,7 @@
         var countdownText = '(' + minsLeft + ':' + (secsLeft < 10 ? '0' : '') + secsLeft + ')';
         statusEl.innerHTML = lastUpdateStr + ' ' + countdownText;
       }
+
       update();
       countdownInterval = setInterval(update, 1000);
     }
@@ -135,7 +188,7 @@
       var ms = now.getMilliseconds();
       var remainder = minutes % 5;
       var minutesToNext = 5 - remainder;
-      if (remainder === 0) minutesToNext = 5; // força +5min se já no múltiplo
+      if (remainder === 0) minutesToNext = 5; // agenda +5min se já no múltiplo
       var delayMs = minutesToNext * 60000 - seconds * 1000 - ms;
       if (delayMs < 500) {
         loadPrices();
@@ -157,7 +210,7 @@
 
       var startTime = Date.now();
       var xhr = new XMLHttpRequest();
-      xhr.open('GET', 'crypto_prices.txt', true); // sem cache buster para permitir cache e rapidez
+      xhr.open('GET', 'crypto_prices.txt', true); // sem ?_ = para permitir cache e reduzir delay
       xhr.timeout = 10000;
 
       xhr.onreadystatechange = function() {
@@ -168,10 +221,13 @@
           if (xhr.status === 200) {
             var text = xhr.responseText;
             var lines = text.split('\n');
-            var btcVal = null, ethVal = null;
+            var btcVal = null;
+            var ethVal = null;
+
             for (var i = 0; i < lines.length; i++) {
               var line = lines[i].trim();
               if (line === '' || line.charAt(0) === '#') continue;
+
               if (line.indexOf('BTC') !== -1) {
                 var parts = line.split(':');
                 if (parts.length > 1) btcVal = parts[1].trim().split(' ')[0];
@@ -181,6 +237,7 @@
                 if (parts.length > 1) ethVal = parts[1].trim().split(' ')[0];
               }
             }
+
             if (btcVal !== null && ethVal !== null) {
               btcEl.innerHTML = formatNumber(btcVal);
               ethEl.innerHTML = formatNumber(ethVal);
