@@ -121,7 +121,7 @@
         alt="ETH">
       ETH&nbsp;&nbsp;<span class="price" id="eth">—</span>
     </div>
-    <div id="status">Carregando...</div>
+    <div id="status">Carregando preços iniciais...</div>
   </div>
 
   <script type="text/javascript">
@@ -181,43 +181,15 @@
       countdownInterval = setInterval(update, 1000);
     }
 
-    function scheduleNextUpdate() {
-      var now = new Date(getRealMs());
-      var minutes = now.getMinutes();
-      var seconds = now.getSeconds();
-      var ms = now.getMilliseconds();
-      var remainder = minutes % 5;
-      var minutesToNext = 5 - remainder;
-      if (remainder === 0) minutesToNext = 5;
-      var delayMs = minutesToNext * 60000 - seconds * 1000 - ms;
-      if (delayMs < 500) {
-        loadPrices();
-        setTimeout(scheduleNextUpdate, 300000);
-      } else {
-        setTimeout(loadPricesAndSchedule, delayMs);
-      }
-    }
+    function loadPrices(callback) {
+      statusEl.innerHTML = 'Buscando preços...';
 
-    function loadPricesAndSchedule() {
-      loadPrices();
-      setTimeout(scheduleNextUpdate, 300000);
-    }
-
-    function loadPrices(retryCount) {
-      retryCount = retryCount || 0;
-      if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
-      statusEl.innerHTML = 'Buscando preços... (tentativa ' + (retryCount + 1) + ')';
-
-      var startTime = Date.now();
       var xhr = new XMLHttpRequest();
-      xhr.open('GET', 'crypto_prices.txt', true); // sem cache buster para rapidez
+      xhr.open('GET', 'crypto_prices.txt', true);
       xhr.timeout = 10000;
 
       xhr.onreadystatechange = function() {
         if (xhr.readyState === 4) {
-          var elapsed = Date.now() - startTime;
-          console.log('XHR demorou: ' + elapsed + 'ms');
-
           if (xhr.status === 200) {
             var text = xhr.responseText;
             var lines = text.split('\n');
@@ -247,6 +219,7 @@
               var m = d.getMinutes();
               lastUpdateStr = 'Atualizado às ' + h + ':' + (m < 10 ? '0' : '') + m;
 
+              // Calcula o próximo múltiplo de 5 minutos a partir de agora
               var nextMinutes = Math.ceil((m + 1) / 5) * 5;
               var addedHours = 0;
               if (nextMinutes >= 60) {
@@ -260,29 +233,50 @@
               nextDate.setMilliseconds(0);
 
               startCountdownDisplay(nextDate.getTime());
+
+              if (callback) callback();
             } else {
-              statusEl.innerHTML = 'Erro: preços não encontrados após ' + elapsed + 'ms';
+              statusEl.innerHTML = 'Erro: preços não encontrados no arquivo';
             }
           } else {
-            statusEl.innerHTML = 'Erro ao carregar (status ' + xhr.status + ') após ' + elapsed + 'ms';
-            if (retryCount < 3) {
-              setTimeout(function() { loadPrices(retryCount + 1); }, 5000);
-            }
+            statusEl.innerHTML = 'Erro ao carregar arquivo (status ' + xhr.status + ')';
           }
         }
       };
-
-      xhr.ontimeout = function() {
-        statusEl.innerHTML = 'Timeout após 10s - tentando novamente...';
-        if (retryCount < 3) setTimeout(function() { loadPrices(retryCount + 1); }, 5000);
-      };
-
       xhr.send(null);
     }
 
-    // Início
+    function scheduleNextUpdate() {
+      var now = new Date(getRealMs());
+      var minutes = now.getMinutes();
+      var seconds = now.getSeconds();
+      var ms = now.getMilliseconds();
+
+      var remainder = minutes % 5;
+      var minutesToNext = 5 - remainder;
+      if (remainder === 0) minutesToNext = 5; // se exatamente no múltiplo, agenda +5min
+
+      var delayMs = minutesToNext * 60000 - seconds * 1000 - ms;
+
+      if (delayMs < 500) {
+        loadPrices(function() {
+          setTimeout(scheduleNextUpdate, 300000);
+        });
+      } else {
+        setTimeout(function() {
+          loadPrices(function() {
+            setTimeout(scheduleNextUpdate, 300000);
+          });
+        }, delayMs);
+      }
+    }
+
+    // Início: carrega preços imediatamente na primeira vez
     syncServerTime(function() {
-      scheduleNextUpdate();
+      loadPrices(function() {
+        // Após o primeiro load bem-sucedido, inicia o agendamento normal
+        scheduleNextUpdate();
+      });
     });
   </script>
 </body>
