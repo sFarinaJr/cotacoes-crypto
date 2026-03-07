@@ -45,9 +45,13 @@
       height: 100%;
       position: relative;
       z-index: 1;
+      display: -webkit-flex;
       display: flex;
+      -webkit-flex-direction: column;
       flex-direction: column;
+      -webkit-justify-content: center;
       justify-content: center;
+      -webkit-align-items: center;
       align-items: center;
     }
 
@@ -64,15 +68,22 @@
       background: rgba(0, 0, 0, 0.30);
       padding: 20px 40px;
       border-radius: 16px;
-      backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
       box-shadow: 0 4px 20px rgba(0,0,0,0.4);
       min-width: 720px;
+      display: -webkit-flex;
       display: flex;
+      -webkit-align-items: center;
       align-items: center;
+      -webkit-justify-content: center;
       justify-content: center;
       white-space: nowrap;
       overflow: hidden;
+    }
+
+    /* backdrop-filter é opcional – iPad 2 não suporta */
+    .item {
+      -webkit-backdrop-filter: blur(4px);
+      backdrop-filter: blur(4px);
     }
 
     .btc { color: #f58e11; }
@@ -132,7 +143,9 @@
     var lastUpdateStr = '';
     var timeOffset = 0;
 
-    function getRealMs() { return Date.now() + timeOffset; }
+    function getRealMs() {
+      return Date.now() + timeOffset;
+    }
 
     function syncServerTime(callback) {
       var xhr = new XMLHttpRequest();
@@ -160,14 +173,16 @@
     }
 
     function startCountdownDisplay(targetTimeMs) {
-      if (countdownInterval) clearInterval(countdownInterval);
+      if (countdownInterval) {
+        clearInterval(countdownInterval);
+      }
 
       function update() {
         var remainingMs = targetTimeMs - getRealMs();
         if (remainingMs <= 0) {
-          remainingMs = 0;
-          statusEl.innerHTML = lastUpdateStr + ' (Atualizando agora...)';
+          statusEl.innerHTML = lastUpdateStr + ' (atualizando...)';
           clearInterval(countdownInterval);
+          countdownInterval = null;
           return;
         }
         var remainingSec = Math.floor(remainingMs / 1000);
@@ -233,15 +248,28 @@
 
               startCountdownDisplay(nextDate.getTime());
 
-              if (callback) callback();
+              if (callback) callback(true);
             } else {
-              statusEl.innerHTML = 'Erro: preços não encontrados no arquivo';
+              statusEl.innerHTML = 'Erro: preços não encontrados';
+              if (callback) callback(false);
             }
           } else {
-            statusEl.innerHTML = 'Erro ao carregar arquivo (status ' + xhr.status + ')';
+            statusEl.innerHTML = 'Erro ao carregar (status ' + xhr.status + ')';
+            if (callback) callback(false);
           }
         }
       };
+
+      xhr.ontimeout = function() {
+        statusEl.innerHTML = 'Timeout ao buscar preços';
+        if (callback) callback(false);
+      };
+
+      xhr.onerror = function() {
+        statusEl.innerHTML = 'Erro de conexão';
+        if (callback) callback(false);
+      };
+
       xhr.send(null);
     }
 
@@ -249,28 +277,33 @@
       var now = new Date(getRealMs());
       var minutes = now.getMinutes();
       var seconds = now.getSeconds();
-      var ms = now.getMilliseconds();
+      var msleft = now.getMilliseconds();
 
       var remainder = minutes % 5;
       var minutesToNext = 5 - remainder;
       if (remainder === 0) minutesToNext = 5;
 
-      var delayMs = minutesToNext * 60000 - seconds * 1000 - ms;
+      var delayMs = (minutesToNext * 60000) - (seconds * 1000) - msleft;
 
+      // Evita delay negativo ou muito pequeno
       if (delayMs < 500) {
-        loadPrices(function() {
-          setTimeout(scheduleNextUpdate, 300000);
-        });
-      } else {
-        setTimeout(function() {
-          loadPrices(function() {
-            setTimeout(scheduleNextUpdate, 300000);
-          });
-        }, delayMs);
+        delayMs = 500;
       }
+
+      setTimeout(function() {
+        loadPrices(function(success) {
+          // Sempre agenda o próximo ciclo, mesmo se falhar
+          scheduleNextUpdate();
+
+          // Opcional: se falhar, pode tentar mais cedo (descomente se quiser)
+          // if (!success) {
+          //   setTimeout(scheduleNextUpdate, 60000); // tenta novamente em 1 minuto
+          // }
+        });
+      }, delayMs);
     }
 
-    // Início: carrega preços imediatamente na primeira vez
+    // Início
     syncServerTime(function() {
       loadPrices(function() {
         scheduleNextUpdate();
