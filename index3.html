@@ -58,7 +58,7 @@
     h1 {
       font-size: 60px;
       margin-bottom: 40px;
-      color: #030303;
+      color: #ffffff;
     }
 
     .item {
@@ -80,7 +80,6 @@
       overflow: hidden;
     }
 
-    /* backdrop-filter é opcional – iPad 2 não suporta */
     .item {
       -webkit-backdrop-filter: blur(4px);
       backdrop-filter: blur(4px);
@@ -103,8 +102,20 @@
 
     #status {
       font-size: 28px;
-      color: #aaccff;
+      color: #000000;                      /* texto preto */
+      -webkit-text-stroke: 0.8px #555555;  /* contorno cinza escuro */
+      text-shadow: 
+        -1px -1px 0 #cccccc,
+         1px -1px 0 #cccccc,
+        -1px  1px 0 #cccccc,
+         1px  1px 0 #cccccc;            /* borda cinza clara */
       margin-top: 60px;
+      background: rgba(255, 255, 255, 0.75);  /* fundo semi-branco para ajudar na legibilidade */
+      padding: 8px 20px;
+      border-radius: 12px;
+      -webkit-backdrop-filter: blur(4px);
+      backdrop-filter: blur(4px);
+      line-height: 1.4;
     }
   </style>
 </head>
@@ -285,20 +296,13 @@
 
       var delayMs = (minutesToNext * 60000) - (seconds * 1000) - msleft;
 
-      // Evita delay negativo ou muito pequeno
       if (delayMs < 500) {
         delayMs = 500;
       }
 
       setTimeout(function() {
         loadPrices(function(success) {
-          // Sempre agenda o próximo ciclo, mesmo se falhar
           scheduleNextUpdate();
-
-          // Opcional: se falhar, pode tentar mais cedo (descomente se quiser)
-          // if (!success) {
-          //   setTimeout(scheduleNextUpdate, 60000); // tenta novamente em 1 minuto
-          // }
         });
       }, delayMs);
     }
