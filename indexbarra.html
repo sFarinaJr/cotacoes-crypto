@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1024, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Cotação BTC e ETH</title>
+
+  <style type="text/css">
+    * {
+      margin: 0;
+      padding: 0;
+    }
+    html, body {
+      height: 100%;
+      width: 1024px;
+      margin: 0 auto;
+      color: white;
+      font-family: Arial, Helvetica, sans-serif;
+      overflow: hidden;
+      text-align: center;
+    }
+
+    #bg-video {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      min-width: 100%;
+      min-height: 100%;
+      width: auto;
+      height: auto;
+      transform: translate(-50%, -50%);
+      z-index: -2;
+    }
+
+    .overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(10, 31, 58, 0.25);
+      z-index: -1;
+    }
+
+    .container {
+      height: 100%;
+      position: relative;
+      z-index: 1;
+      display: -webkit-flex;
+      display: flex;
+      -webkit-flex-direction: column;
+      flex-direction: column;
+      -webkit-justify-content: center;
+      justify-content: center;
+      -webkit-align-items: center;
+      align-items: center;
+    }
+
+    h1 {
+      font-size: 60px;
+      margin-bottom: 40px;
+      color: #ffffff;
+    }
+
+    .item {
+      margin: 40px 0;
+      font-size: 120px;
+      font-weight: bold;
+      background: rgba(0, 0, 0, 0.30);
+      padding: 20px 40px;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      min-width: 720px;
+      display: -webkit-flex;
+      display: flex;
+      -webkit-align-items: center;
+      align-items: center;
+      -webkit-justify-content: center;
+      justify-content: center;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .item {
+      -webkit-backdrop-filter: blur(4px);
+      backdrop-filter: blur(4px);
+    }
+
+    .btc { color: #f58e11; }
+    .eth { color: #edc40c; }
+
+    .price {
+      font-size: 108px;
+      font-weight: bold;
+    }
+
+    img {
+      width: 120px;
+      height: auto;
+      vertical-align: middle;
+      margin-right: 20px;
+    }
+
+    #status {
+      font-size: 28px;
+      color: #000000;
+      -webkit-text-stroke: 0.8px #555555;
+      text-shadow: 
+        -1px -1px 0 #cccccc,
+         1px -1px 0 #cccccc,
+        -1px  1px 0 #cccccc,
+         1px  1px 0 #cccccc;
+      margin-top: 40px;
+      background: rgba(255, 255, 255, 0.75);
+      padding: 8px 20px;
+      border-radius: 12px;
+      -webkit-backdrop-filter: blur(4px);
+      backdrop-filter: blur(4px);
+      line-height: 1.4;
+    }
+
+    /* === Nova barra de cotações (ticker) === */
+    .ticker-container {
+      width: 100%;
+      max-width: 900px;
+      margin: 30px auto 50px auto;
+      overflow: hidden;
+      background: rgba(0, 0, 0, 0.40);
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+      -webkit-backdrop-filter: blur(4px);
+      backdrop-filter: blur(4px);
+      padding: 12px 0;
+    }
+
+    .ticker {
+      display: inline-block;
+      white-space: nowrap;
+      animation: ticker-move 30s linear infinite;
+      font-size: 36px;
+      font-weight: bold;
+      color: #ffffff;
+    }
+
+    .ticker-item {
+      display: inline-block;
+      margin: 0 40px;
+    }
+
+    .ticker-btc { color: #f58e11; }
+    .ticker-eth { color: #edc40c; }
+    .ticker-gold { color: #ffd700; }
+    .ticker-silver { color: #c0c0c0; }
+    .ticker-usdbrl { color: #00ccff; }
+
+    @keyframes ticker-move {
+      0% { transform: translateX(100%); }
+      100% { transform: translateX(-100%); }
+    }
+
+    /* Pausa ao passar o mouse (opcional, mas útil em desktop) */
+    .ticker-container:hover .ticker {
+      animation-play-state: paused;
+    }
+  </style>
+</head>
+<body>
+
+  <video id="bg-video" autoplay loop muted playsinline>
+    <source src="fundo btc.mp4" type="video/mp4">
+  </video>
+
+  <div class="overlay"></div>
+
+  <div class="container">
+    <h1>Cotações Crypto</h1>
+    
+    <div class="item btc">
+      <img 
+        src="bitcoin-btc-logo.svg" 
+        onerror="this.outerHTML='<span style=\'color:#f7931a; font-size:120px; vertical-align:middle; margin-right:20px;\'>₿</span>'" 
+        alt="BTC">
+      BTC&nbsp;&nbsp;<span class="price" id="btc">—</span>
+    </div>
+    
+    <div class="item eth">
+      <img 
+        src="ethereum-eth-logo.svg" 
+        onerror="this.outerHTML='<span style=\'color:#627eea; font-size:120px; vertical-align:middle; margin-right:20px;\'>Ξ</span>'" 
+        alt="ETH">
+      ETH&nbsp;&nbsp;<span class="price" id="eth">—</span>
+    </div>
+
+    <!-- === BARRA DE COTAÇÕES AQUI === -->
+    <div class="ticker-container">
+      <div class="ticker" id="tickerContent">
+        <!-- Itens iniciais (serão atualizados via JS) -->
+        <span class="ticker-item ticker-btc">BTC: <span id="ticker_btc">—</span> USD</span>
+        <span class="ticker-item ticker-eth">ETH: <span id="ticker_eth">—</span> USD</span>
+        <span class="ticker-item ticker-gold">OURO: 2.650,00 USD</span>
+        <span class="ticker-item ticker-silver">PRATA: 31,50 USD</span>
+        <span class="ticker-item ticker-usdbrl">USDBRL: 5,65</span>
+        <!-- Duplicamos para fazer loop contínuo sem espaço vazio -->
+        <span class="ticker-item ticker-btc">BTC: <span id="ticker_btc2">—</span> USD</span>
+        <span class="ticker-item ticker-eth">ETH: <span id="ticker_eth2">—</span> USD</span>
+        <span class="ticker-item ticker-gold">OURO: 2.650,00 USD</span>
+        <span class="ticker-item ticker-silver">PRATA: 31,50 USD</span>
+        <span class="ticker-item ticker-usdbrl">USDBRL: 5,65</span>
+      </div>
+    </div>
+
+    <div id="status">Carregando preços iniciais...</div>
+  </div>
+
+  <script type="text/javascript">
+    var btcEl = document.getElementById('btc');
+    var ethEl = document.getElementById('eth');
+    var statusEl = document.getElementById('status');
+    var tickerBtc = document.getElementById('ticker_btc');
+    var tickerEth = document.getElementById('ticker_eth');
+    var tickerBtc2 = document.getElementById('ticker_btc2');
+    var tickerEth2 = document.getElementById('ticker_eth2');
+    var countdownInterval = null;
+    var lastUpdateStr = '';
+    var timeOffset = 0;
+
+    function getRealMs() {
+      return Date.now() + timeOffset;
+    }
+
+    function syncServerTime(callback) {
+      var xhr = new XMLHttpRequest();
+      var url = 'crypto_prices.txt?_=' + new Date().getTime();
+      xhr.open('HEAD', url, true);
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4) {
+          var dateStr = xhr.getResponseHeader('Date');
+          if (dateStr) {
+            var serverMs = new Date(dateStr).getTime();
+            timeOffset = serverMs - Date.now();
+          }
+          if (callback) callback();
+        }
+      };
+      xhr.send();
+    }
+
+    function formatNumber(num) {
+      num = parseFloat(num);
+      if (isNaN(num)) return '—';
+      var str = num.toFixed(2);
+      var parts = str.split('.');
+      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+      return parts.join(',');
+    }
+
+    function startCountdownDisplay(targetTimeMs) {
+      if (countdownInterval) clearInterval(countdownInterval);
+
+      function update() {
+        var remainingMs = targetTimeMs - getRealMs();
+        if (remainingMs <= 0) {
+          statusEl.innerHTML = lastUpdateStr + ' (atualizando...)';
+          clearInterval(countdownInterval);
+          countdownInterval = null;
+          return;
+        }
+        var remainingSec = Math.floor(remainingMs / 1000);
+        var minsLeft = Math.floor(remainingSec / 60);
+        var secsLeft = remainingSec % 60;
+        var countdownText = '(' + minsLeft + ':' + (secsLeft < 10 ? '0' : '') + secsLeft + ')';
+        statusEl.innerHTML = lastUpdateStr + ' ' + countdownText;
+      }
+
+      update();
+      countdownInterval = setInterval(update, 1000);
+    }
+
+    function updateTicker(btcVal, ethVal) {
+      var btcFormatted = formatNumber(btcVal);
+      var ethFormatted = formatNumber(ethVal);
+      
+      if (tickerBtc) tickerBtc.innerHTML = btcFormatted;
+      if (tickerEth) tickerEth.innerHTML = ethFormatted;
+      if (tickerBtc2) tickerBtc2.innerHTML = btcFormatted;
+      if (tickerEth2) tickerEth2.innerHTML = ethFormatted;
+    }
+
+    function loadPrices(callback) {
+      statusEl.innerHTML = 'Buscando preços...';
+
+      var xhr = new XMLHttpRequest();
+      var url = 'crypto_prices.txt?_=' + new Date().getTime();
+      xhr.open('GET', url, true);
+      xhr.timeout = 10000;
+
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4) {
+          if (xhr.status === 200) {
+            var text = xhr.responseText;
+            var lines = text.split('\n');
+            var btcVal = null;
+            var ethVal = null;
+
+            for (var i = 0; i < lines.length; i++) {
+              var line = lines[i].trim();
+              if (line === '' || line.charAt(0) === '#') continue;
+
+              if (line.indexOf('BTC') !== -1) {
+                var parts = line.split(':');
+                if (parts.length > 1) btcVal = parts[1].trim().split(' ')[0];
+              }
+              if (line.indexOf('ETH') !== -1) {
+                var parts = line.split(':');
+                if (parts.length > 1) ethVal = parts[1].trim().split(' ')[0];
+              }
+            }
+
+            if (btcVal !== null && ethVal !== null) {
+              btcEl.innerHTML = formatNumber(btcVal);
+              ethEl.innerHTML = formatNumber(ethVal);
+              updateTicker(btcVal, ethVal);  // Atualiza a barra ticker
+
+              var d = new Date(getRealMs());
+              var h = d.getHours();
+              var m = d.getMinutes();
+              lastUpdateStr = 'Atualizado às ' + h + ':' + (m < 10 ? '0' : '') + m;
+
+              var nextMinutes = Math.ceil((m + 1) / 5) * 5;
+              var addedHours = 0;
+              if (nextMinutes >= 60) {
+                addedHours = 1;
+                nextMinutes -= 60;
+              }
+              var nextDate = new Date(d);
+              nextDate.setHours(nextDate.getHours() + addedHours);
+              nextDate.setMinutes(nextMinutes);
+              nextDate.setSeconds(0);
+              nextDate.setMilliseconds(0);
+
+              startCountdownDisplay(nextDate.getTime());
+
+              if (callback) callback(true);
+            } else {
+              statusEl.innerHTML = 'Erro: preços não encontrados';
+              if (callback) callback(false);
+            }
+          } else {
+            statusEl.innerHTML = 'Erro ao carregar (status ' + xhr.status + ')';
+            if (callback) callback(false);
+          }
+        }
+      };
+
+      xhr.ontimeout = function() {
+        statusEl.innerHTML = 'Timeout ao buscar preços';
+        if (callback) callback(false);
+      };
+
+      xhr.onerror = function() {
+        statusEl.innerHTML = 'Erro de conexão';
+        if (callback) callback(false);
+      };
+
+      xhr.send(null);
+    }
+
+    function scheduleNextUpdate() {
+      var now = new Date(getRealMs());
+      var minutes = now.getMinutes();
+      var seconds = now.getSeconds();
+      var msleft = now.getMilliseconds();
+
+      var remainder = minutes % 5;
+      var minutesToNext = 5 - remainder;
+      if (remainder === 0) minutesToNext = 5;
+
+      var delayMs = (minutesToNext * 60000) - (seconds * 1000) - msleft;
+
+      if (delayMs < 500) delayMs = 500;
+
+      setTimeout(function() {
+        loadPrices(function(success) {
+          scheduleNextUpdate();
+        });
+      }, delayMs);
+    }
+
+    // Início
+    syncServerTime(function() {
+      loadPrices(function() {
+        scheduleNextUpdate();
+      });
+    });
+  </script>
+</body>
+</html>
