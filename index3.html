@@ -188,7 +188,7 @@
       var ms = now.getMilliseconds();
       var remainder = minutes % 5;
       var minutesToNext = 5 - remainder;
-      if (remainder === 0) minutesToNext = 5; // agenda +5min se já no múltiplo
+      if (remainder === 0) minutesToNext = 5;
       var delayMs = minutesToNext * 60000 - seconds * 1000 - ms;
       if (delayMs < 500) {
         loadPrices();
@@ -210,7 +210,7 @@
 
       var startTime = Date.now();
       var xhr = new XMLHttpRequest();
-      xhr.open('GET', 'crypto_prices.txt', true); // sem ?_ = para permitir cache e reduzir delay
+      xhr.open('GET', 'crypto_prices.txt', true); // sem cache buster para rapidez
       xhr.timeout = 10000;
 
       xhr.onreadystatechange = function() {
