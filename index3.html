@@ -219,7 +219,6 @@
               var m = d.getMinutes();
               lastUpdateStr = 'Atualizado às ' + h + ':' + (m < 10 ? '0' : '') + m;
 
-              // Calcula o próximo múltiplo de 5 minutos a partir de agora
               var nextMinutes = Math.ceil((m + 1) / 5) * 5;
               var addedHours = 0;
               if (nextMinutes >= 60) {
@@ -254,7 +253,7 @@
 
       var remainder = minutes % 5;
       var minutesToNext = 5 - remainder;
-      if (remainder === 0) minutesToNext = 5; // se exatamente no múltiplo, agenda +5min
+      if (remainder === 0) minutesToNext = 5;
 
       var delayMs = minutesToNext * 60000 - seconds * 1000 - ms;
 
@@ -274,7 +273,6 @@
     // Início: carrega preços imediatamente na primeira vez
     syncServerTime(function() {
       loadPrices(function() {
-        // Após o primeiro load bem-sucedido, inicia o agendamento normal
         scheduleNextUpdate();
       });
     });
