@@ -315,6 +315,14 @@
         scheduleNextUpdate();
       });
     });
+
+    // === PREVENÇÃO DE CRASH NO IPAD A1395 ===
+    // Força reload completo a cada 6 horas para limpar memória e GPU acumulada
+    // (não altera aparência, contadores ou comportamento visível)
+    setTimeout(function() {
+      location.reload(true);   // true = força reload do servidor (sem cache)
+    }, 6 * 60 * 60 * 1000);
+
   </script>
 </body>
 </html>
