@@ -19,6 +19,7 @@
       min-width: 100%; min-height: 100%;
       width: auto; height: auto;
       transform: translate(-50%, -50%); z-index: -2;
+      background-size: cover;
     }
     .overlay {
       position: fixed; top: 0; left: 0; right: 0; bottom: 0;
@@ -54,7 +55,7 @@
 </head>
 <body>
 
-  <video id="bg-video" autoplay loop muted playsinline>
+  <video id="bg-video" autoplay loop muted playsinline webkit-playsinline preload="auto">
     <source src="fundo btc.mp4" type="video/mp4">
   </video>
 
@@ -74,7 +75,6 @@
   </div>
 
   <script type="text/javascript">
-    // Seleção de elementos única para poupar memória
     var btcEl = document.getElementById('btc');
     var ethEl = document.getElementById('eth');
     var statusEl = document.getElementById('status');
@@ -83,17 +83,36 @@
     var countdownInterval = null;
     var lastUpdateStr = '';
     var timeOffset = 0;
-    
-    // Objeto XHR único (Singleton) para evitar vazamento de memória
     var xhr = new XMLHttpRequest();
+
+    // --- CORREÇÃO DO VÍDEO PARA IPAD ANTIGO ---
+    function forceVideoPlay() {
+      videoEl.muted = true; // Garante que está mudo (essencial para autoplay)
+      videoEl.play();
+      
+      // Tenta dar play novamente em 1 segundo caso o carregamento demore
+      setTimeout(function() {
+        if (videoEl.paused) {
+          videoEl.play();
+        }
+      }, 1000);
+    }
+
+    // Tentar rodar o vídeo assim que a página carregar
+    window.addEventListener('load', forceVideoPlay, false);
+    // Tentar rodar o vídeo no primeiro toque na tela (se necessário pelo iOS)
+    document.addEventListener('touchstart', forceVideoPlay, false);
 
     function getRealMs() { return Date.now() + timeOffset; }
 
     function syncServerTime() {
       xhr.open('HEAD', 'crypto_prices.txt?_=' + Date.now(), true);
       xhr.onreadystatechange = function() {
-        if (xhr.readyState === 4 && xhr.getResponseHeader('Date')) {
-          timeOffset = new Date(xhr.getResponseHeader('Date')).getTime() - Date.now();
+        if (xhr.readyState === 4) {
+          var dateStr = xhr.getResponseHeader('Date');
+          if (dateStr) {
+            timeOffset = new Date(dateStr).getTime() - Date.now();
+          }
           loadPrices();
         }
       };
@@ -116,7 +135,7 @@
         if (remainingMs <= 0) {
           statusEl.innerText = lastUpdateStr + ' (atualizando...)';
           clearInterval(countdownInterval);
-          loadPrices(); // Chama a próxima atualização diretamente
+          loadPrices();
           return;
         }
         var sec = Math.floor(remainingMs / 1000);
@@ -135,8 +154,14 @@
 
           for (var i = 0; i < lines.length; i++) {
             var line = lines[i].trim();
-            if (line.indexOf('BTC') === 0) btcVal = line.split(':')[1].trim().split(' ')[0];
-            if (line.indexOf('ETH') === 0) ethVal = line.split(':')[1].trim().split(' ')[0];
+            if (line.indexOf('BTC') !== -1) {
+              var p = line.split(':');
+              if(p[1]) btcVal = p[1].trim().split(' ')[0];
+            }
+            if (line.indexOf('ETH') !== -1) {
+              var p = line.split(':');
+              if(p[1]) ethVal = p[1].trim().split(' ')[0];
+            }
           }
 
           if (btcVal && ethVal) {
@@ -144,10 +169,10 @@
             ethEl.innerText = formatNumber(ethVal);
             
             var d = new Date(getRealMs());
+            var h = d.getHours();
             var m = d.getMinutes();
-            lastUpdateStr = 'Atualizado às ' + d.getHours() + ':' + (m < 10 ? '0' : '') + m;
+            lastUpdateStr = 'Atualizado às ' + h + ':' + (m < 10 ? '0' : '') + m;
 
-            // Cálculo do próximo ciclo de 5 min
             var nextDate = new Date(d);
             nextDate.setMinutes(Math.ceil((m + 0.1) / 5) * 5, 0, 0);
             startCountdownDisplay(nextDate.getTime());
@@ -157,17 +182,16 @@
       xhr.send();
     }
 
-    // Manutenção do Vídeo: Reinicia o player a cada 30 min para limpar cache de renderização
+    // Reinicia o vídeo a cada 30 min para evitar crash de GPU
     setInterval(function() {
-      videoEl.pause();
-      videoEl.load();
-      videoEl.play();
+      videoEl.currentTime = 0;
+      forceVideoPlay();
     }, 1800000);
 
     // Início
     syncServerTime();
 
-    // Reload Preventivo: Reduzi para 3 horas, ideal para a RAM de 512MB do iPad 2
+    // Reload total a cada 3 horas para limpeza profunda de RAM
     setTimeout(function() {
       window.location.reload(true);
     }, 3 * 60 * 60 * 1000);
