@@ -20,6 +20,7 @@
       font-family: Arial, Helvetica, sans-serif;
       overflow: hidden;
       text-align: center;
+      background-color: #000; /* fallback caso o vídeo falhe no iPad antigo */
     }
 
     #bg-video {
@@ -102,15 +103,15 @@
 
     #status {
       font-size: 28px;
-      color: #000000;                      /* texto preto */
-      -webkit-text-stroke: 0.8px #555555;  /* contorno cinza escuro */
+      color: #000000;
+      -webkit-text-stroke: 0.8px #555555;
       text-shadow: 
         -1px -1px 0 #cccccc,
          1px -1px 0 #cccccc,
         -1px  1px 0 #cccccc,
-         1px  1px 0 #cccccc;            /* borda cinza clara */
+         1px  1px 0 #cccccc;
       margin-top: 60px;
-      background: rgba(255, 255, 255, 0.75);  /* fundo semi-branco para ajudar na legibilidade */
+      background: rgba(255, 255, 255, 0.75);
       padding: 8px 20px;
       border-radius: 12px;
       -webkit-backdrop-filter: blur(4px);
@@ -121,7 +122,7 @@
 </head>
 <body>
 
-  <video id="bg-video" autoplay loop muted playsinline>
+  <video id="bg-video" autoplay loop muted playsinline webkit-playsinline preload="auto">
     <source src="fundo btc.mp4" type="video/mp4">
   </video>
 
@@ -150,9 +151,29 @@
     var btcEl = document.getElementById('btc');
     var ethEl = document.getElementById('eth');
     var statusEl = document.getElementById('status');
+    var videoEl = document.getElementById('bg-video');
     var countdownInterval = null;
     var lastUpdateStr = '';
     var timeOffset = 0;
+
+    // === FORÇA PLAY DO VÍDEO NO IPAD A1395 (iOS 9) ===
+    function forceVideoPlay() {
+      if (!videoEl) return;
+      videoEl.muted = true;           // essencial para autoplay no iOS
+      videoEl.play().catch(function() {}); // ignora erro silencioso
+      
+      // Tenta novamente em 800ms (muitos iPads antigos demoram a carregar)
+      setTimeout(function() {
+        if (videoEl.paused) videoEl.play().catch(function() {});
+      }, 800);
+    }
+
+    // === REINICIA O VÍDEO A CADA 30 MINUTOS (evita leak de GPU) ===
+    function restartVideo() {
+      if (!videoEl) return;
+      videoEl.currentTime = 0;
+      forceVideoPlay();
+    }
 
     function getRealMs() {
       return Date.now() + timeOffset;
@@ -160,7 +181,7 @@
 
     function syncServerTime(callback) {
       var xhr = new XMLHttpRequest();
-      var url = 'crypto_prices.txt?_=' + new Date().getTime();  // Cache bust para HEAD também
+      var url = 'crypto_prices.txt?_=' + new Date().getTime();
       xhr.open('HEAD', url, true);
       xhr.onreadystatechange = function() {
         if (xhr.readyState === 4) {
@@ -185,9 +206,7 @@
     }
 
     function startCountdownDisplay(targetTimeMs) {
-      if (countdownInterval) {
-        clearInterval(countdownInterval);
-      }
+      if (countdownInterval) clearInterval(countdownInterval);
 
       function update() {
         var remainingMs = targetTimeMs - getRealMs();
@@ -211,8 +230,8 @@
     function loadPrices(callback) {
       statusEl.innerHTML = 'Buscando preços...';
 
-      var xhr = new XMLHttpRequest();
-      var url = 'crypto_prices.txt?_=' + new Date().getTime();  // Adicionado cache bust para evitar cache do navegador
+      var xhr = new XMLHttpRequest();   // novo objeto a cada chamada (evita conflito)
+      var url = 'crypto_prices.txt?_=' + new Date().getTime();
       xhr.open('GET', url, true);
       xhr.timeout = 10000;
 
@@ -297,10 +316,7 @@
       if (remainder === 0) minutesToNext = 5;
 
       var delayMs = (minutesToNext * 60000) - (seconds * 1000) - msleft;
-
-      if (delayMs < 500) {
-        delayMs = 500;
-      }
+      if (delayMs < 500) delayMs = 500;
 
       setTimeout(function() {
         loadPrices(function(success) {
@@ -309,20 +325,23 @@
       }, delayMs);
     }
 
-    // Início
+    // === INÍCIO ===
+    window.addEventListener('load', forceVideoPlay, false);
+    document.addEventListener('touchstart', forceVideoPlay, false); // iOS antigo precisa de toque
+
     syncServerTime(function() {
       loadPrices(function() {
         scheduleNextUpdate();
       });
     });
 
-    // === PREVENÇÃO DE CRASH NO IPAD A1395 ===
-    // Força reload completo a cada 6 horas para limpar memória e GPU acumulada
-    // (não altera aparência, contadores ou comportamento visível)
-    setTimeout(function() {
-      location.reload(true);   // true = força reload do servidor (sem cache)
-    }, 6 * 60 * 60 * 1000);
+    // Reinicia vídeo a cada 30 minutos (principal causa de crash de GPU no A1395)
+    setInterval(restartVideo, 1800000);
 
+    // Reload completo a cada 4 horas (balanceado: limpa RAM/GPU sem ficar off-line muito tempo)
+    setTimeout(function() {
+      location.reload(true);
+    }, 4 * 60 * 60 * 1000);
   </script>
 </body>
 </html>
