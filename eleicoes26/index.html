@@ -69,4 +69,13 @@ function render(){
   <div class="body">${rows}<div class="calc"><b>Partidos considerados:</b> ${[...new Set(bl.map(c=>c.p))].join(', ')||'—'}.<br>Cálculo: ${f(s.ouvidos)} × ${s.pct}% = <b>${f(s.bloco)}</b> ouvidos (${partidos}).<br>Projeção sobre o eleitorado: ${f(s.eleitores)} × ${s.pct}% ≈ ${f(s.proj)}.</div></div></details>`}).join('')||'<p class="sub">Nada encontrado.</p>';
 }
 document.getElementById('q').oninput=render;document.getElementById('o').onchange=render;render();
+/* contador interno, sem exibir nada na página */
+(function(){try{
+ var B='https://abacus.jasoncameron.dev/hit/sfarinajr-eleicoes26/',hit=function(k){fetch(B+k,{keepalive:true}).catch(function(){})};
+ var s=false,l=false;
+ try{s=sessionStorage.getItem('e26s')}catch(e){}
+ try{l=localStorage.getItem('e26v')}catch(e){}
+ if(!s){hit('acessos');try{sessionStorage.setItem('e26s','1')}catch(e){}}
+ if(!l){hit('visitantes');try{localStorage.setItem('e26v','1')}catch(e){}}
+}catch(e){}})();
 </script></body></html>
